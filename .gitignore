@@ -10,3 +10,6 @@ Visual Micro
 /Libraries/IRremote/README.md
 /Libraries/IRremote/keywords.txt
 /Libraries/NewPing/keywords.txt
+/Libraries/IRLib/.gitattributes
+/Libraries/IRLib/.gitignore
+/Libraries/IRLib/CHANGELOG.txt

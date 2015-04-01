@@ -2,6 +2,7 @@
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClInclude Include="Visual Micro\.IR5.vsarduino.h" />
+    <ClInclude Include="Visual Micro\.KeyesIRRemote.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="KeyesIRRemote.ino" />

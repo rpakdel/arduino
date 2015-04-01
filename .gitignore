@@ -5,3 +5,8 @@ README.txt
 examples
 manuals
 Visual Micro
+*.opensdf
+/Libraries/IRremote/Contributors.md
+/Libraries/IRremote/README.md
+/Libraries/IRremote/keywords.txt
+/Libraries/NewPing/keywords.txt

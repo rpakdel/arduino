@@ -17,4 +17,9 @@
   <ItemGroup>
     <None Include="sr04-2.ino" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Visual Micro\.sr04-2.vsarduino.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>

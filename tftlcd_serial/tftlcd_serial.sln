@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tftlcd_serial", "tftlcd_serial.vcxproj", "{933A4AC8-E241-4FF2-BC68-313881114460}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "basic_serial_test", "..\basic_serial_test\basic_serial_test.vcxproj", "{023135B4-9434-46E7-8D82-F56198BAAA82}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{933A4AC8-E241-4FF2-BC68-313881114460}.Debug|Win32.ActiveCfg = Debug|Win32
+		{933A4AC8-E241-4FF2-BC68-313881114460}.Debug|Win32.Build.0 = Debug|Win32
+		{933A4AC8-E241-4FF2-BC68-313881114460}.Release|Win32.ActiveCfg = Release|Win32
+		{933A4AC8-E241-4FF2-BC68-313881114460}.Release|Win32.Build.0 = Release|Win32
+		{023135B4-9434-46E7-8D82-F56198BAAA82}.Debug|Win32.ActiveCfg = Debug|Win32
+		{023135B4-9434-46E7-8D82-F56198BAAA82}.Debug|Win32.Build.0 = Debug|Win32
+		{023135B4-9434-46E7-8D82-F56198BAAA82}.Release|Win32.ActiveCfg = Release|Win32
+		{023135B4-9434-46E7-8D82-F56198BAAA82}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

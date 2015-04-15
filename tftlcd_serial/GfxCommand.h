@@ -14,6 +14,7 @@ typedef enum GfxCommand
     setTextWrap,
     setCursor,
     drawPixel,
+    drawLine,
 };
 
 #endif

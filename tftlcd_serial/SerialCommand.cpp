@@ -4,7 +4,7 @@
 
 #include "SerialCommand.h"
 
-SerialCommand::SerialCommand(int inCommandIndex, GfxCommand inCmd, String inCommandName)
+SerialCommand::SerialCommand(int inCommandIndex, GfxCommand inCmd, const String& inCommandName)
     : 
     commandIndex(inCommandIndex),
     command(inCmd), 
@@ -26,34 +26,34 @@ SerialCommand::SerialCommand(const SerialCommand& serialCommand)
 
 }
 
-bool SerialCommand::isMatch(String str)
+bool SerialCommand::isMatch(const String& str)
 {
     String i(str);
     i.toUpperCase();
     return i.startsWith(this->token);
 }
 
-GfxCommand SerialCommand::getGfxCommand()
+GfxCommand SerialCommand::getGfxCommand() const
 {
     return this->command;
 }
 
-String SerialCommand::getGfxCommandName()
+String SerialCommand::getGfxCommandName() const
 {
     return this->commandName;
 }
 
-int SerialCommand::getTokenLen()
+int SerialCommand::getTokenLen() const
 {
     return this->tokenLen;
 }
 
-int SerialCommand::getCommandIndex()
+int SerialCommand::getCommandIndex()  const
 {
     return this->commandIndex;
 }
 
-String SerialCommand::parseParam(String str)
+String SerialCommand::parseParam(const String& str) const
 {
     return str.substring(this->tokenLen);
 }

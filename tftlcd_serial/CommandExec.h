@@ -17,21 +17,23 @@ class CommandExec
 {
  public:
      CommandExec(SerialCommandParser& inParser, Adafruit_TFTLCD* inTft);
-     void exec(String str);
+     void exec(const String& str);
 private:
     SerialCommandParser parser;
     Adafruit_TFTLCD* tft;
     
-    void execCommand(SerialCommand* command, String param);
-    void setTextSize(String sizeStr);
-    void setTextColor(String colorName);
-    void print(String str, bool newLine);
-    void fillScreen(String colorName);
-    void setCursor(String xy);
-    void drawPixel(String xyColor);
+    void execCommand(const SerialCommand& command, const String& param);
+    void setTextSize(const String& sizeStr);
+    void setTextColor(const String& colorName);
+    void print(const String& str, bool newLine);
+    void fillScreen(const String& colorName);
+    void setCursor(const String& xy);
+    void drawPixel(const String& xyColor);
+    void drawLine(const String& x0y0x1y1Color);
 
+    bool splitParameters(const String& command, const String& param, String split[], int numParams);
+    void printBadCommandParam(const String& cmdName, const String& param);
 
-    void printBadCommandParam(String cmdName, String param);
 };
 
 #endif

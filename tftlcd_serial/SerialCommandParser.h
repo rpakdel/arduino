@@ -17,8 +17,8 @@ class SerialCommandParser
 {
  public:
      SerialCommandParser(TFTLCDColorParser& inColorParser);
-     SerialCommand* parseCommand(String str);
-     int parseColor(String colorName);
+     SerialCommand& parseCommand(const String& str);
+     int parseColor(const String& colorName);
 private:
     SerialCommand** commands;
     int commandsCount = 0;

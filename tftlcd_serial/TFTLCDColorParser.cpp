@@ -4,7 +4,7 @@
 
 #include "TFTLCDColorParser.h"
 
-int TFTLCDColorParser::getColor(String colorName)
+int TFTLCDColorParser::getColor(const String& colorName)
 {
     String c(colorName);
     c.toUpperCase();

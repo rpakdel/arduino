@@ -5,26 +5,26 @@
 #include "SerialCommandParser.h"
 
 
-SerialCommand* SerialCommandParser::parseCommand(String str)
+SerialCommand& SerialCommandParser::parseCommand(const String& str)
 {
     for (int i = 1; i < commandsCount; ++i)
     {
         SerialCommand* cmd = commands[i];
         if (cmd->isMatch(str))
         {
-            return cmd;
+            return *cmd;
         }
     }
 
     // return unknown
-    return commands[0];
+    return *commands[0];
 }
 
 SerialCommandParser::SerialCommandParser(TFTLCDColorParser& inColorParser)
     :
     colorParser(inColorParser)
 {
-    commandsCount = 9;
+    commandsCount = 10;
     commands = new SerialCommand*[commandsCount];
 
     int index = 0;
@@ -37,6 +37,7 @@ SerialCommandParser::SerialCommandParser(TFTLCDColorParser& inColorParser)
     commands[index++] = new SerialCommand(commandsCount++, setTextWrap, "setTextWrap");
     commands[index++] = new SerialCommand(commandsCount++, setCursor, "setCursor");
     commands[index++] = new SerialCommand(commandsCount++, drawPixel, "drawPixel");
+    commands[index++] = new SerialCommand(commandsCount++, drawLine, "drawLine");
 
     if (index != commandsCount)
     {
@@ -44,7 +45,7 @@ SerialCommandParser::SerialCommandParser(TFTLCDColorParser& inColorParser)
     }
 }
 
-int SerialCommandParser::parseColor(String colorName)
+int SerialCommandParser::parseColor(const String& colorName)
 {
     return colorParser.getColor(colorName);
 }

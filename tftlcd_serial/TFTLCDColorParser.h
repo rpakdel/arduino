@@ -29,7 +29,7 @@ class TFTLCDColorParser
 
 
  public:
-     int getColor(String colorName);
+     int getColor(const String& colorName);
 };
 
 

@@ -13,14 +13,14 @@
 class SerialCommand
 {
  public:
-    SerialCommand(int inCommandIndex, GfxCommand inCmd, String inCommandName);
+    SerialCommand(int inCommandIndex, GfxCommand inCmd, const String& inCommandName);
     SerialCommand(const SerialCommand& serialCommand);
-    bool isMatch(String str);
-    GfxCommand getGfxCommand();
-    String getGfxCommandName();
-    int getTokenLen();
-    int getCommandIndex();
-    String parseParam(String str);
+    bool isMatch(const String& str);
+    GfxCommand getGfxCommand() const;
+    String getGfxCommandName() const;
+    int getTokenLen() const;
+    int getCommandIndex() const;
+    String parseParam(const String& str) const;
  private:
      int commandIndex;
      GfxCommand command;

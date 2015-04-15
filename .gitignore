@@ -13,3 +13,7 @@ Visual Micro
 /Libraries/IRLib/.gitattributes
 /Libraries/IRLib/.gitignore
 /Libraries/IRLib/CHANGELOG.txt
+/tftlcd_serial_webapi/bin
+/tftlcd_serial_webapi/obj
+packages
+/tftlcd_serial_webapi/*.suo

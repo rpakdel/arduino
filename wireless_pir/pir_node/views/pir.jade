@@ -1,0 +1,19 @@
+﻿extends layout
+block head
+
+  script(type="text/javascript", src="/javascripts/viewmodel.js")
+
+block content
+
+  .status(data-bind='style: { backgroundColor: color() }')
+    .centre
+      p.statusLarge
+        span(data-bind='text: duration ')
+      p Since 
+        span(data-bind='text: date ')
+    
+
+  script.
+    var viewModel = new ViewModel();
+    viewModel.start();
+    ko.applyBindings(viewModel);

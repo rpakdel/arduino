@@ -271,13 +271,12 @@ void Adafruit_TFTLCD::begin(uint16_t id) {
     writeRegister8(ILI9341_POWERCONTROL2, 0x10);
     writeRegister16(ILI9341_VCOMCONTROL1, 0x2B2B);
     writeRegister8(ILI9341_VCOMCONTROL2, 0xC0);
-    writeRegister8(ILI9341_MEMCONTROL, ILI9341_MADCTL_MY | ILI9341_MADCTL_BGR);
+    writeRegister8(ILI9341_MEMCONTROL, ILI9341_MADCTL_MY | ILI9341_MADCTL_BGR); 
     writeRegister8(ILI9341_PIXELFORMAT, 0x55);
     writeRegister16(ILI9341_FRAMECONTROL, 0x001B);
-    
     writeRegister8(ILI9341_ENTRYMODE, 0x07);
     /* writeRegister32(ILI9341_DISPLAYFUNC, 0x0A822700);*/
-
+    writeRegister8(ILI9341_INVERTON, 0);
     writeRegister8(ILI9341_SLEEPOUT, 0);
     delay(150);
     writeRegister8(ILI9341_DISPLAYON, 0);
@@ -864,13 +863,11 @@ uint16_t Adafruit_TFTLCD::readID(void) {
 
   uint8_t hi, lo;
 
-  /*
   for (uint8_t i=0; i<128; i++) {
     Serial.print("$"); Serial.print(i, HEX);
     Serial.print(" = 0x"); Serial.println(readReg(i), HEX);
   }
-  */
-
+  
   if (readReg(0x04) == 0x8000) { // eh close enough
     // setc!
     /*

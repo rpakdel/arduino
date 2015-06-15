@@ -44,7 +44,9 @@ class Adafruit_TFTLCD : public Adafruit_GFX {
            readPixel(int16_t x, int16_t y),
            readID(void);
   uint32_t readReg(uint8_t r);
-
+#ifndef writeRegister8
+  void writeRegister8(uint8_t a, uint8_t d);
+#endif
  private:
 
   void     init(),
@@ -59,9 +61,7 @@ class Adafruit_TFTLCD : public Adafruit_GFX {
 #ifndef setReadDir
            setReadDir(void),
 #endif
-#ifndef writeRegister8
-           writeRegister8(uint8_t a, uint8_t d),
-#endif
+
 #ifndef writeRegister16
            writeRegister16(uint16_t a, uint16_t d),
 #endif

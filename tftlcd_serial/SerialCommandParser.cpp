@@ -9,40 +9,41 @@ SerialCommand& SerialCommandParser::parseCommand(const String& str)
 {
     for (int i = 1; i < commandsCount; ++i)
     {
-        SerialCommand* cmd = commands[i];
-        if (cmd->isMatch(str))
+        SerialCommand& cmd = commands[i];
+        if (cmd.isMatch(&str.c_str()[0]))
         {
-            return *cmd;
+            return cmd;
         }
     }
 
     // return unknown
-    return *commands[0];
+    return commands[0];
 }
 
 SerialCommandParser::SerialCommandParser(TFTLCDColorParser& inColorParser)
     :
     colorParser(inColorParser)
 {
-    commandsCount = 10;
-    commands = new SerialCommand*[commandsCount];
-
-    int index = 0;
-    commands[index++] = new SerialCommand(commandsCount++, unknown, "unknown");
-    commands[index++] = new SerialCommand(commandsCount++, fillScreen, "fillScreen");
-    commands[index++] = new SerialCommand(commandsCount++, print, "print");
-    commands[index++] = new SerialCommand(commandsCount++, println, "println");
-    commands[index++] = new SerialCommand(commandsCount++, setTextColor, "setTextColor");
-    commands[index++] = new SerialCommand(commandsCount++, setTextSize, "setTextSize");
-    commands[index++] = new SerialCommand(commandsCount++, setTextWrap, "setTextWrap");
-    commands[index++] = new SerialCommand(commandsCount++, setCursor, "setCursor");
-    commands[index++] = new SerialCommand(commandsCount++, drawPixel, "drawPixel");
-    commands[index++] = new SerialCommand(commandsCount++, drawLine, "drawLine");
-
-    if (index != commandsCount)
-    {
-        Serial.println("WRONG COMMANDSCOUNT");
-    }
+    commands[unknown] = SerialCommand(unknown);
+    commands[print] = SerialCommand(print);
+    commands[println] = SerialCommand(println);
+    commands[setTextColor] = SerialCommand(setTextColor);
+    commands[setTextSize] = SerialCommand(setTextSize);
+    commands[setTextWrap] = SerialCommand(setTextWrap);
+    commands[setCursor] = SerialCommand(setCursor);
+    commands[drawPixel] = SerialCommand(drawPixel);
+    commands[drawLine] = SerialCommand(drawLine);
+    commands[drawRect] = SerialCommand(drawRect);
+    commands[fillRect] = SerialCommand(fillRect);
+    commands[fillScreen] = SerialCommand(fillScreen);
+    commands[drawCircle] = SerialCommand(drawCircle);
+    commands[fillCircle] = SerialCommand(fillCircle);
+    commands[drawTriangle] = SerialCommand(drawTriangle);
+    commands[fillTriangle] = SerialCommand(fillTriangle);
+    commands[drawRoundRect] = SerialCommand(drawRoundRect);
+    commands[fillRoundRect] = SerialCommand(fillRoundRect);
+    commands[drawChar] = SerialCommand(drawChar);
+    commands[setRotation] = SerialCommand(setRotation);
 }
 
 int SerialCommandParser::parseColor(const String& colorName)

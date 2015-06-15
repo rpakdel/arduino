@@ -17,3 +17,4 @@ Visual Micro
 /tftlcd_serial_webapi/obj
 packages
 /tftlcd_serial_webapi/*.suo
+node_modules

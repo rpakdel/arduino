@@ -13,20 +13,18 @@
 class SerialCommand
 {
  public:
-    SerialCommand(int inCommandIndex, GfxCommand inCmd, const String& inCommandName);
+    SerialCommand();
+    SerialCommand(GfxCommand inCmd);
     SerialCommand(const SerialCommand& serialCommand);
-    bool isMatch(const String& str);
+    bool isMatch(const char* str) const;
     GfxCommand getGfxCommand() const;
     String getGfxCommandName() const;
-    int getTokenLen() const;
-    int getCommandIndex() const;
+    String getToken() const;
+    uint16_t getTokenLen() const;
+    uint16_t getCommandIndex() const;
     String parseParam(const String& str) const;
  private:
-     int commandIndex;
      GfxCommand command;
-     int tokenLen;
-     String token;
-     String commandName;
 };
 #endif
 

@@ -30,7 +30,12 @@ private:
     void setCursor(const String& xy);
     void drawPixel(const String& xyColor);
     void drawLine(const String& x0y0x1y1Color);
+    void drawRect(const String& xywhColor);
+    void fillRect(const String& xywhColor);
 
+    void drawCircle(const String& x0y0rColor);
+    void fillCircle(const String& x0y0rColor);
+    
     bool splitParameters(const String& command, const String& param, String split[], int numParams);
     void printBadCommandParam(const String& cmdName, const String& param);
 

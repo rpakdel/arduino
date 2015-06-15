@@ -7,8 +7,7 @@ namespace tftlcd_serial_webapi4
 {
     public enum GfxCommand
     {
-        unknown,
-        fillScreen,
+        unknown = 0,
         print,
         println,
         setTextColor,
@@ -16,6 +15,17 @@ namespace tftlcd_serial_webapi4
         setTextWrap,
         setCursor,
         drawPixel,
-        drawLine
+        drawLine,
+        drawRect,
+        fillRect,
+        fillScreen,
+        drawCircle,
+        fillCircle,
+        drawTriangle,
+        fillTriangle,
+        drawRoundRect,
+        fillRoundRect,
+        drawChar,
+        setRotation
     };
 }

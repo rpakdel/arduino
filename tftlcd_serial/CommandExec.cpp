@@ -11,6 +11,63 @@ CommandExec::CommandExec(SerialCommandParser& inParser, Adafruit_TFTLCD* inTft)
 {
 }
 
+void CommandExec::execCommand(const SerialCommand& command, const String& param)
+{
+    Serial.print("Command: ");
+    Serial.print(command.getGfxCommandName());
+    Serial.print(", param: ");
+    Serial.println(param);
+
+    if (command.getGfxCommand() == unknown)
+    {
+        return;
+    }
+
+    switch (command.getGfxCommand())
+    {
+    case ::fillScreen:
+        this->fillScreen(param);
+        return;
+    case ::print:
+        print(param, false);
+        return;
+    case ::println:
+        print(param, true);
+        return;
+    case ::setTextColor:
+        setTextColor(param);
+        return;
+    case ::setTextSize:
+        setTextSize(param);
+        return;
+    case ::setCursor:
+        setCursor(param);
+        return;
+    case ::drawPixel:
+        drawPixel(param);
+        return;
+    case ::drawLine:
+        drawLine(param);
+        return;
+    case ::drawRect:
+        drawRect(param);
+        return;
+    case ::fillRect:
+        fillRect(param);
+        return;
+    case ::drawCircle:
+        drawCircle(param);
+        return;
+    case ::fillCircle:
+        fillCircle(param);
+        return;
+    }
+
+    Serial.print("EXEC NOT MAPPED FOR ");
+    Serial.println(command.getGfxCommandName());
+}
+
+
 void CommandExec::exec(const String& str)
 {
     SerialCommand& command = parser.parseCommand(str);
@@ -25,6 +82,46 @@ void CommandExec::exec(const String& str)
     String param = command.parseParam(str);
     execCommand(command, param);
 }
+
+void CommandExec::printBadCommandParam(const String& command, const String& param)
+{
+    Serial.print("BAD PARAM FOR ");
+    Serial.print(command);
+    Serial.print(" '");
+    Serial.print(param);
+    Serial.println("'");
+}
+
+bool CommandExec::splitParameters(const String& command, const String& param, String split[], int numParams)
+{
+    if (numParams == 0)
+    {
+        return true;
+    }
+
+    if (numParams == 1)
+    {
+        split[0] = param;
+        return true;
+    }
+
+    int lastCommaIndex = -1;
+    int splitIndex = 0;
+    for (splitIndex = 0; splitIndex < numParams - 1; ++splitIndex)
+    {
+        int commaIndex = param.indexOf(',', lastCommaIndex + 1);
+        if (commaIndex < 0)
+        {
+            printBadCommandParam(command, param);
+        }
+
+        split[splitIndex] = param.substring(lastCommaIndex + 1, commaIndex);
+        lastCommaIndex = commaIndex;
+    }
+    split[splitIndex] = param.substring(lastCommaIndex + 1, param.length());
+    return true;
+}
+
 
 void CommandExec::fillScreen(const String& colorName)
 {
@@ -99,6 +196,39 @@ void CommandExec::drawLine(const String& x0y0x1y1Color)
     tft->drawLine(x0, y0, x1, y1, color);
 }
 
+void CommandExec::drawRect(const String& xywhColor)
+{
+    String split[5];
+    if (!splitParameters("drawRect", xywhColor, split, 5))
+    {
+        return;
+    }
+
+    int x = atoi(split[0].c_str());
+    int y = atoi(split[1].c_str());
+    int w = atoi(split[2].c_str());
+    int h = atoi(split[3].c_str());
+    int color = parser.parseColor(split[4]);
+    tft->drawRect(x, y, w, h, color);
+}
+
+void CommandExec::fillRect(const String& xywhColor)
+{
+    String split[5];
+    if (!splitParameters("fillRect", xywhColor, split, 5))
+    {
+        return;
+    }
+
+    int x = atoi(split[0].c_str());
+    int y = atoi(split[1].c_str());
+    int w = atoi(split[2].c_str());
+    int h = atoi(split[3].c_str());
+    int color = parser.parseColor(split[4]);
+    tft->fillRect(x, y, w, h, color);
+}
+
+
 void CommandExec::setCursor(const String& xy)
 {
     int comma = xy.indexOf(',');
@@ -114,85 +244,32 @@ void CommandExec::setCursor(const String& xy)
     }
 }
 
-void CommandExec::execCommand(const SerialCommand& command, const String& param)
+void CommandExec::drawCircle(const String& x0y0rColor)
 {
-    Serial.print("Command: ");
-    Serial.print(command.getGfxCommandName());
-    Serial.print(", param: ");
-    Serial.println(param);
-
-    if (command.getGfxCommand() == unknown)
+    String split[4];
+    if (!splitParameters("drawCircle", x0y0rColor, split, 4))
     {
         return;
     }
 
-    switch (command.getGfxCommand())
-    {
-    case ::fillScreen:
-        this->fillScreen(param);
-        return;
-    case ::print:
-        print(param, false);
-        return;
-    case ::println:
-        print(param, true);
-        return;
-    case ::setTextColor:
-        setTextColor(param);
-        return;
-    case ::setTextSize:
-        setTextSize(param);
-        return;
-    case ::setCursor:
-        setCursor(param);
-        return;
-    case ::drawPixel:
-        drawPixel(param);
-        return;
-    case ::drawLine:
-        drawLine(param);
-        return;
-    }
-
-    Serial.print("EXEC NOT MAPPED FOR ");
-    Serial.println(command.getGfxCommandName());
+    int x0 = atoi(split[0].c_str());
+    int y0 = atoi(split[1].c_str());
+    int r = atoi(split[2].c_str());
+    int color = parser.parseColor(split[3]);
+    tft->drawCircle(x0, y0, r, color);
 }
 
-void CommandExec::printBadCommandParam(const String& command, const String& param)
+void CommandExec::fillCircle(const String& x0y0rColor)
 {
-    Serial.print("BAD PARAM FOR ");
-    Serial.print(command);
-    Serial.print(" '");
-    Serial.print(param);
-    Serial.println("'");
-}
-
-bool CommandExec::splitParameters(const String& command, const String& param, String split[], int numParams)
-{
-    if (numParams == 0)
+    String split[4];
+    if (!splitParameters("fillCircle", x0y0rColor, split, 4))
     {
-        return true;
+        return;
     }
 
-    if (numParams == 1)
-    {
-        split[0] = param;
-        return true;
-    }
-
-    int lastCommaIndex = -1;
-    int splitIndex = 0;
-    for (splitIndex = 0; splitIndex < numParams - 1; ++splitIndex)
-    {
-        int commaIndex = param.indexOf(',', lastCommaIndex + 1);
-        if (commaIndex < 0)
-        {
-            printBadCommandParam(command, param);
-        }
-
-        split[splitIndex] = param.substring(lastCommaIndex + 1, commaIndex);
-        lastCommaIndex = commaIndex;
-    }
-    split[splitIndex] = param.substring(lastCommaIndex + 1, param.length());
-    return true;
+    int x0 = atoi(split[0].c_str());
+    int y0 = atoi(split[1].c_str());
+    int r = atoi(split[2].c_str());
+    int color = parser.parseColor(split[3]);
+    tft->fillCircle(x0, y0, r, color);
 }

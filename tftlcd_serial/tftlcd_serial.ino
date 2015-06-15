@@ -33,14 +33,14 @@ SerialCommandParser parser(colorParser);
 CommandExec commandExec(parser, &tft);
 
 void setup(void) {
-    Serial.begin(115200);
-    tft.reset();
-    delay(500);
+    Serial.begin(921600);
     uint16_t identifier = 0x9341;
     tft.begin(identifier);
-    tft.fillScreen(WHITE);
+    tft.fillScreen(BLUE);
     tft.setTextSize(5);
+    tft.setTextColor(YELLOW);
     tft.println("READY");
+    
 }
 
 void loop(void) 

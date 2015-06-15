@@ -20,8 +20,8 @@ class SerialCommandParser
      SerialCommand& parseCommand(const String& str);
      int parseColor(const String& colorName);
 private:
-    SerialCommand** commands;
-    int commandsCount = 0;
+    SerialCommand commands[20];
+    int commandsCount = 20;
     TFTLCDColorParser colorParser;
 };
 

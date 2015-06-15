@@ -4,33 +4,38 @@
 
 #include "SerialCommand.h"
 
-SerialCommand::SerialCommand(int inCommandIndex, GfxCommand inCmd, const String& inCommandName)
-    : 
-    commandIndex(inCommandIndex),
-    command(inCmd), 
-    commandName(inCommandName)
+SerialCommand::SerialCommand()
+    :
+    command(unknown)
 {
-    this->token = inCommandName + ":";
-    this->token.toUpperCase();
-    this->tokenLen = this->token.length();
+
+}
+
+SerialCommand::SerialCommand(GfxCommand inCmd)
+    : 
+    command(inCmd)
+{
 }
 
 SerialCommand::SerialCommand(const SerialCommand& serialCommand)
     : 
-    commandIndex(serialCommand.commandIndex),
-    command(serialCommand.command), 
-    commandName(serialCommand.commandName),
-    token(serialCommand.token),
-    tokenLen(serialCommand.tokenLen)
+    command(serialCommand.command)
 {
-
 }
 
-bool SerialCommand::isMatch(const String& str)
+String SerialCommand::getToken() const
+{
+    String token = getGfxCommandName() + ":";
+    token.toUpperCase();
+    return token;
+}
+
+bool SerialCommand::isMatch(const char* str) const
 {
     String i(str);
     i.toUpperCase();
-    return i.startsWith(this->token);
+    String token = getToken();
+    return i.startsWith(token);
 }
 
 GfxCommand SerialCommand::getGfxCommand() const
@@ -40,20 +45,22 @@ GfxCommand SerialCommand::getGfxCommand() const
 
 String SerialCommand::getGfxCommandName() const
 {
-    return this->commandName;
+    char buffer[30];
+    strcpy_P(buffer, (char*)pgm_read_word(&(GfxCommand_table[getCommandIndex()])));
+    return String(buffer);
 }
 
-int SerialCommand::getTokenLen() const
+uint16_t SerialCommand::getTokenLen() const
 {
-    return this->tokenLen;
+    return getToken().length();
 }
 
-int SerialCommand::getCommandIndex()  const
+uint16_t SerialCommand::getCommandIndex()  const
 {
-    return this->commandIndex;
+    return this->command;
 }
 
 String SerialCommand::parseParam(const String& str) const
 {
-    return str.substring(this->tokenLen);
+    return str.substring(getTokenLen());
 }

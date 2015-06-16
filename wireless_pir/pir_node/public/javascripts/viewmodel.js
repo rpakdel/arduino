@@ -1,17 +1,19 @@
 ﻿var ViewModel = function () {
   var self = this;
-  this.detected = ko.observable(false);
+  this.detected = ko.observable(-1);
   this.error = ko.observable();
   this.date = ko.observable();
   this.color = ko.computed(function () {
-    if (self.detected()) {
-      return 'lightgreen';
+    var d = self.detected();
+    switch (d) {
+      case 0:
+        return 'lightgreen';
+      case 1:
+        return 'red';
     }
-    return 'red';
+    return 'orange';
   });
-  this.duration = ko.computed(function() {
-      return ((Date.now() - self.date()) / 1000.0).toFixed(0);
-  });
+  this.duration = ko.observable(0);
 };
 
 ViewModel.prototype.checkPir = function () {
@@ -24,8 +26,10 @@ ViewModel.prototype.checkPir = function () {
       var data = JSON.parse(request.responseText);
       self.detected(data.detected);
       self.date(new Date(data.date));
+      self.duration(new Date(data.duration).getSeconds());
     } else {
-    // We reached our target server, but it returned an error
+      self.detected(-1);
+      self.error('error querying pir status');
     }
   };
   

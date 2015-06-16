@@ -16,5 +16,10 @@ router.get('/api/status', function (req, res) {
   res.json(pirClient.getStatus());
 });
 
+router.get('/api/logs', function (req, res) {
+  res.json(pirClient.getLogs());
+});
+
+
 module.exports.setPirClient = setPirClient;
 module.exports.router = router;

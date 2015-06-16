@@ -5,18 +5,21 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var PirClient = require('./models/pirClient');
+var PirLogger = require('./models/pirLogger').PirLogger;
 
 var routes = require('./routes/index');
 var users = require('./routes/users');
 var pirRouter = require('./routes/pirRouter.js');
+
 
 var app = express();
 
 var pirPort = 80;
 var pirIp = '192.168.1.27';
 var pirCheckInterval = 2000;
+var pirLogger = new PirLogger('public/logs/pirlog.txt');
 
-var pirClient = new PirClient(pirPort, pirIp, pirCheckInterval);
+var pirClient = new PirClient(pirPort, pirIp, pirCheckInterval, pirLogger);
 pirRouter.setPirClient(pirClient);
 pirClient.start();
 

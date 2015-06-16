@@ -1,14 +1,16 @@
 ﻿var net = require('net');
 
-var PirClient = function (port, ip, checkIntervalPeriod) {
+var PirClient = function (port, ip, checkIntervalPeriod, logger) {
   this.port = port;
   this.ip = ip;
   this.checkIntervalPeriod = checkIntervalPeriod;
   this.connected = false;
-  this.detected = false;
+  this.detected = 0;
   this.error = null;
-  this.date = null;
+  this.date = Date.now();
+  this.duration = 0;
   this.prevDetected = false;
+  this.logger = logger;
 }
 
 PirClient.prototype.connect = function () {
@@ -28,11 +30,19 @@ PirClient.prototype.connect = function () {
     console.log('Received: ' + value);
     self.prevDetected = self.detected;
     if (value) {
-      self.detected = (value == "1");
+      if (value == "1") {
+        self.detected = 1;
+      }
+      else if (value == "0") {
+        self.detected = 0;
+      }
     }
     if (self.prevDetected != self.detected) {
       self.date = Date.now();
+      self.logger.log(self.date, self.detected);
     }
+    self.error = null;
+    self.duration = Date.now() - self.date;
   });
   
   client.on('close', function () {
@@ -42,17 +52,27 @@ PirClient.prototype.connect = function () {
   
   client.on('error', function (ex) {
     self.error = ex;
+    self.detected = -1;
     console.log(ex);
   });
 }
 
 PirClient.prototype.getStatus = function () {
   return {
+    pirIp: this.ip,
+    pirPort: this.port,
     connected: this.connected,
     detected: this.detected,
     date: this.date,
+    duration: this.duration,
     error: this.error
   };
+}
+
+PirClient.prototype.getLogs = function () {
+  var data = this.logger.getLogs();
+  var lines = data.split('\r\n');
+  return lines;
 }
 
 PirClient.prototype.start = function () {

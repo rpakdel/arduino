@@ -15,13 +15,13 @@ bool SetupWifi()
     wifiSerial.begin(9600);
     Serial.println("ESP8266> Setup");
 
-    if (wifi.setOprToStationSoftAP())
+    if (wifi.setOprToStation())
     {
-        Serial.println("ESP8266> Set to AP mode");
+        Serial.println("ESP8266> Set to station mode");
     }
     else
     {
-        Serial.println("ESP8266> Failed to set to AP mode");
+        Serial.println("ESP8266> Failed to set to station mode");
         return false;
     }
 
@@ -58,7 +58,7 @@ bool SetupWifi()
 
     if (wifi.setTCPServerTimeout(3))
     {
-        Serial.println("ESP8266> Set TCP server timout to 10s");
+        Serial.println("ESP8266> Set TCP server timout to 3s");
     }
     else
     {

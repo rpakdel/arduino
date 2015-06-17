@@ -24,6 +24,9 @@ a {
   text-align: center;
   z-index: 0;
 }
-.statusLarge {
-  font-size: 1500%;
+.durationLarge {
+  font-size: 800%;
+}
+.durationSmall {
+  font-size: 100%;
 }

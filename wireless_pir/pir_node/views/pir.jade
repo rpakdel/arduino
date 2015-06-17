@@ -7,9 +7,11 @@ block content
 
   .status(data-bind='style: { backgroundColor: color() }')
     .centre
-      p.statusLarge
-        span(data-bind='text: duration ')
-      p Since 
+      p.durationLarge
+        span(data-bind='text: durationHuman ') 
+      p.durationSmall
+        span(data-bind='text: durationSeconds ') 
+        span  since 
         span(data-bind='text: date ')
     
 

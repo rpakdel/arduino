@@ -72,7 +72,39 @@ PirClient.prototype.getStatus = function () {
 PirClient.prototype.getLogs = function () {
   var data = this.logger.getLogs();
   var lines = data.split('\r\n');
-  return lines;
+  var len = lines.length;
+  var result = [];
+  var getVal = function (l) {
+    if (l.length == 0) {
+      return -1;
+    }
+    var split = l.split(',');
+    if (split.length == 2) {
+      return parseInt(split[1]);
+    }
+    return -1;
+  };
+  
+  var pushLine = function (l) {
+    if (l.length == 0) {
+      return;
+    }
+    result.push(l);
+  }
+
+  if (len > 0) {
+    pushLine(lines[0]);
+    for (var i = 1; i < len; i++) {
+      var pl = lines[i - 1];
+      var cl = lines[i];
+      var plVal = getVal(pl);
+      var clVal = getVal(cl);
+      if (clVal != -1 && clVal != plVal) {
+        pushLine(cl);
+      }
+    }
+  }
+  return result;
 }
 
 PirClient.prototype.start = function () {

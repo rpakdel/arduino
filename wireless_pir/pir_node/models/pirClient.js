@@ -74,16 +74,6 @@ PirClient.prototype.getLogs = function () {
   var lines = data.split('\r\n');
   var len = lines.length;
   var result = [];
-  var getVal = function (l) {
-    if (l.length == 0) {
-      return -1;
-    }
-    var split = l.split(',');
-    if (split.length == 2) {
-      return parseInt(split[1]);
-    }
-    return -1;
-  };
   
   var pushLine = function (l) {
     if (l.length == 0) {
@@ -97,11 +87,31 @@ PirClient.prototype.getLogs = function () {
     for (var i = 1; i < len; i++) {
       var pl = lines[i - 1];
       var cl = lines[i];
-      var plVal = getVal(pl);
-      var clVal = getVal(cl);
+      var plVal = this.logger.getLogEntryValuePart(pl);
+      var clVal = this.logger.getLogEntryValuePart(cl);
       if (clVal != -1 && clVal != plVal) {
         pushLine(cl);
       }
+    }
+  }
+  return result;
+}
+
+PirClient.prototype.getHistogram = function () {
+  var lines = this.getLogs();
+  // initialize
+  var result = {};
+  for (var i = 0; i < 24; i++) {
+    result[i] = 0;
+  }
+  var len = lines.length;
+  for (var j = 0; j < len; j++) {
+    var v = this.logger.getLogEntryValuePart(lines[j]);
+    if (v == 1) {
+      var t = this.logger.getLogEntryTimePart(lines[j]);
+      var d = new Date(t);
+      var h = d.getHours();
+      result[h] += 1;
     }
   }
   return result;

@@ -20,6 +20,10 @@ router.get('/api/logs', function (req, res) {
   res.json(pirClient.getLogs());
 });
 
+router.get('/api/histogram', function (req, res) {
+  res.json(pirClient.getHistogram());
+});
+
 
 module.exports.setPirClient = setPirClient;
 module.exports.router = router;

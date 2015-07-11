@@ -1,0 +1,8 @@
+Name UNO  NRF24
+
+MOSI 11   6 blue
+MISO 12   7 purple
+SCK  13   5 green
+
+CE   7    3 orange   
+SCN  8    4 yellow

@@ -18,3 +18,4 @@ Visual Micro
 packages
 /tftlcd_serial_webapi/*.suo
 node_modules
+doc

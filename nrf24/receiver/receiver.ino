@@ -10,6 +10,7 @@
 #include <LCD.h>
 #include <I2CIO.h>
 #include <FastIO.h>
+
 #include <RF24_config.h>
 #include <printf.h>
 #include <nRF24L01.h>
@@ -31,8 +32,6 @@ byte addresses[][6] = { "1Node", "2Node" };
 
 LiquidCrystal_I2C	lcd(I2C_ADDR, En_pin, Rw_pin, Rs_pin, D4_pin, D5_pin, D6_pin, D7_pin);
 
-char buffer[32];
-
 void setup()
 {
     lcd.begin(16, 2);
@@ -50,26 +49,45 @@ void setup()
     radio.startListening();
 }
 
+void displayBufferOnLcd(char* buffer, int maxLex)
+{
+    Serial.print(F("Buffer: "));
+    Serial.println(buffer);
+    int len = strlen(buffer);
+    lcd.setCursor(0, 0);
+    char line[16 + 1];
+    strncpy(line, buffer, 16);
+    line[16] = '\0';
+    lcd.print(line);
+    Serial.print(F("Line 1: "));
+    Serial.println(line);
+    if (len > 16 && len < 32)
+    {
+        strncpy(line, &buffer[16], len - 16);
+        line[len - 16] = '\0';
+    }
+    else
+    {
+        strncpy(line, &buffer[17], 16);
+        line[16] = '\0';
+    }
+    Serial.print(F("Line 2: "));
+    Serial.println(line);
+    lcd.setCursor(0, 1);
+    lcd.print(line);
+}
+
 void loop()
 {
-    buffer[0] = '\0';
-    lcd.clear();
-    lcd.home(); 
+    char buffer[32];
+    buffer[0] = '\0';    
+        
     if (radio.available())
     {
         radio.read(&buffer, 32);    
 
-        // Spew it
-        Serial.print(F("Got: "));
-        Serial.println(buffer);
-        lcd.print(buffer);
-    }
-    else
-    {
-        Serial.println(F("NO DATA"));
-        lcd.print(F("NO DATA"));
+        displayBufferOnLcd(buffer, 32);        
     }
 
-    // Try again 1s later
-    delay(1000);
+    delay(10);
 }

@@ -18,10 +18,13 @@ byte addresses[][6] = { "1Node", "2Node" };
 
 void setup() 
 {
+    pinMode(3, INPUT);
     Serial.begin(115200);
     Serial.println(F("SENDER"));
 
     radio.begin();
+    radio.setRetries(0, 15);
+    radio.setPALevel(RF24_PA_HIGH);
 
     radio.openWritingPipe(addresses[1]);
     radio.stopListening();
@@ -39,13 +42,11 @@ char buffer[128];
 
 void loop()
 {
-    count++;
-    if (count >= 1024)
-    {
-        count = 0;
-    }
+    int x = analogRead(0);
+    int y = analogRead(1);
+    int s = digitalRead(3);
 
-    sprintf(buffer, "%d", count);
+    sprintf(buffer, "%d,%d,%d", x, y,s);
     Serial.print(F("Now sending "));
     Serial.print(buffer);
     Serial.print(F("..."));
@@ -57,5 +58,5 @@ void loop()
     {
         Serial.println(F("ok"));
     }
-    delay(500);
+    delay(100);
 }

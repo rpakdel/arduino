@@ -45,7 +45,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino;C:\Program Files (x86)\Arduino\hardware\arduino\avr\variants\eightanaloginputs;C:\Users\User\Dropbox\git\arduino\nrf24_basic\sender;C:\Users\User\Dropbox\git\arduino\libraries\RF24;C:\Users\User\Dropbox\git\arduino\libraries\RF24\utility;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SoftwareSerial;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SoftwareSerial\utility;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SPI;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SPI\utility;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\utility;C:\Program Files (x86)\Arduino\libraries;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries;C:\Program Files (x86)\Visual Micro\Visual Micro for Arduino\Micro Platforms\default\debuggers;C:\Users\User\Dropbox\git\arduino\libraries;C:\Program Files (x86)\Arduino\hardware\tools\avr/avr/include/;C:\Program Files (x86)\Arduino\hardware\tools\avr//avr/include/avr/;C:\Program Files (x86)\Arduino\hardware\tools\avr/lib\gcc\avr\4.8.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files (x86)\Arduino\hardware\arduino\avr\cores\arduino;C:\Program Files (x86)\Arduino\hardware\arduino\avr\variants\eightanaloginputs;C:\Users\User\Dropbox\git\arduino\nrf24_joystick_pantilt\sender;C:\Users\User\Dropbox\git\arduino\libraries\RF24;C:\Users\User\Dropbox\git\arduino\libraries\RF24\utility;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SoftwareSerial;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SoftwareSerial\utility;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SPI;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\SPI\utility;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries\Wire\utility;C:\Program Files (x86)\Arduino\libraries;C:\Program Files (x86)\Arduino\hardware\arduino\avr\libraries;C:\Program Files (x86)\Visual Micro\Visual Micro for Arduino\Micro Platforms\default\debuggers;C:\Users\User\Dropbox\git\arduino\libraries;C:\Program Files (x86)\Arduino\hardware\tools\avr/avr/include/;C:\Program Files (x86)\Arduino\hardware\tools\avr//avr/include/avr/;C:\Program Files (x86)\Arduino\hardware\tools\avr/lib\gcc\avr\4.8.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ForcedIncludeFiles>C:\Users\User\Dropbox\git\arduino\nrf24\sender\Visual Micro\.sender.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
       <IgnoreStandardIncludePath>true</IgnoreStandardIncludePath>
       <PreprocessorDefinitions>__AVR_ATmega328p__;__AVR_ATmega328P__;F_CPU=16000000L;ARDUINO=164;ARDUINO_AVR_NANO;ARDUINO_ARCH_AVR;__cplusplus;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -81,7 +81,7 @@
   </ImportGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties arduino.upload.port="COM11" />
+      <UserProperties arduino.upload.port="COM14" />
     </VisualStudio>
   </ProjectExtensions>
 </Project>

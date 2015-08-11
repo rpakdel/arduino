@@ -39,6 +39,7 @@ void setup()
     display.display();
 
     radio.begin();
+    radio.setPALevel(RF24_PA_HIGH);
 
     radio.openReadingPipe(0, addresses[1]);
 
@@ -75,5 +76,5 @@ void loop()
 
     //Serial.println(F("Waiting"));
     // Try again 1s later
-    delay(10);
+    delay(1);
 }

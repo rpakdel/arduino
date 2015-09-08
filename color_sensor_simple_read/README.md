@@ -4,3 +4,4 @@
 * Required Library: https://github.com/dalmirdasilva/ArduinoColorRecognitionDriver
 * Discussion: http://forum.arduino.cc/index.php?topic=118967.0
 * Detailed documentation: http://www.elecfreaks.com/store/download/product/User_Guide/Color_Sensor_Module/color_sensor_module_user_guide.pdf
+* Currently this isn't really working. I suspect the reference voltage isn't stable.

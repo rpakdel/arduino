@@ -1,0 +1,2 @@
+* Purchased from: http://www.aliexpress.com/item/1pc-Sensitive-Microphone-Sound-Sensor-Detection-Module-For-Arduino-AVR-PIC/32299102358.html
+* Documentation: https://tkkrlab.nl/wiki/Arduino_KY-038_Microphone_sound_sensor_module

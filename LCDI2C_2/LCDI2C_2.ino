@@ -44,16 +44,17 @@ void setup()
     lcd.setBacklight(HIGH);
     lcd.home(); // go home
 
-    lcd.print("Proximity Sensor");
+    lcd.print("Hello World");
     delay(1000);
     pinMode(3, INPUT);
+    lcd.clear();
 }
 void loop()
 {
-    lcd.clear();
+    //lcd.clear();
     lcd.home(); // go home
     int pir = digitalRead(3);
     lcd.print(pir);
     digitalWrite(13, pir);
-    delay(200);
+    //delay(200);
 }

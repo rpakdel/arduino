@@ -6,16 +6,8 @@ examples
 manuals
 Visual Micro
 *.opensdf
-/Libraries/IRremote/Contributors.md
-/Libraries/IRremote/README.md
-/Libraries/IRremote/keywords.txt
-/Libraries/NewPing/keywords.txt
-/Libraries/IRLib/.gitattributes
-/Libraries/IRLib/.gitignore
-/Libraries/IRLib/CHANGELOG.txt
-/tftlcd_serial_webapi/bin
-/tftlcd_serial_webapi/obj
+bin
+obj
 packages
-/tftlcd_serial_webapi/*.suo
 node_modules
 doc

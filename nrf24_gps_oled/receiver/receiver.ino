@@ -18,10 +18,10 @@
 #include "RF24.h"
 
 RF24 radio(9, 10);
-byte addresses[][6] = { "1Node", "2Node" };
+static const byte receiver[6] = "2Node";
 
-#define I2C_ADDR    0x27 // <<----- Add your address here.  Find it from I2C Scanner
-#define BACKLIGHT_PIN     3
+#define I2C_ADDR 0x27
+#define BACKLIGHT_PIN 3
 #define En_pin  2
 #define Rw_pin  1
 #define Rs_pin  0
@@ -30,7 +30,7 @@ byte addresses[][6] = { "1Node", "2Node" };
 #define D6_pin  6
 #define D7_pin  7
 
-LiquidCrystal_I2C	lcd(I2C_ADDR, En_pin, Rw_pin, Rs_pin, D4_pin, D5_pin, D6_pin, D7_pin);
+LiquidCrystal_I2C lcd(I2C_ADDR, En_pin, Rw_pin, Rs_pin, D4_pin, D5_pin, D6_pin, D7_pin);
 
 void setup()
 {
@@ -43,8 +43,8 @@ void setup()
     lcd.print("Receiver");
     delay(1000);
     radio.begin();
-
-    radio.openReadingPipe(0, addresses[1]);
+    radio.setPALevel(RF24_PA_HIGH);
+    radio.openReadingPipe(0, receiver);
 
     // Start the radio listening for data
     radio.startListening();
@@ -81,14 +81,14 @@ void displayBufferOnLcd(char* buffer, int maxLex)
 void loop()
 {
     char buffer[32];
-    buffer[0] = '\0';    
-        
+    buffer[0] = '\0';
+
     if (radio.available())
     {
-      digitalWrite(13, HIGH);
-        radio.read(&buffer, 32);    
+        digitalWrite(13, HIGH);
+        radio.read(&buffer, 32);
 
-        displayBufferOnLcd(buffer, 32);        
+        displayBufferOnLcd(buffer, 32);
         digitalWrite(13, LOW);
     }
 

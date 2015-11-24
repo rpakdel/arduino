@@ -6,7 +6,11 @@
 
 #include <Wire.h>
 #include <SSD1306Ascii.h>
+#ifdef OLED_SPI
+#else
 #include <SSD1306AsciiWire.h>
+
+#endif
 
 #include <RF24_config.h>
 #include <nRF24L01.h>
@@ -51,7 +55,7 @@ void setup()
 
     delay(1000);
 
-    Serial.println(F("Sender"));
+    Serial.println(F("Receiver"));
 
     radio.begin();
     radio.setPALevel(RF24_PA_HIGH);

@@ -29,7 +29,7 @@ TinyGPSPlus tinyGPS;
 
 RF24 radio(9, 10);
 static const int senderAdd[2] = { 0xF0F0F0F0AA, 0xF0F0F0F066 };
-static const int sender = 1;
+static const int sender = 0;
 
 
 bool oledAvailable = true;

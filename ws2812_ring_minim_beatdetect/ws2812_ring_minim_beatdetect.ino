@@ -3,9 +3,6 @@
 
 #include <SoftwareSerial.h>
 #include <Adafruit_NeoPixel.h>
-#ifdef __AVR__
-  #include <avr/power.h>
-#endif
 
 SoftwareSerial serial2(5, 4);
 
@@ -21,9 +18,7 @@ SoftwareSerial serial2(5, 4);
 // example for more information on possible values.
 Adafruit_NeoPixel pixels = Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
-int delayval = 500; // delay for half a second
-
-int pixelColors[NUMPIXELS * 3]; // 16 pixels * RGB
+long pixelColors[NUMPIXELS]; // 16 pixels
 
 #define NEWLINE 10
 #define CARRIAGERETURN 13
@@ -31,115 +26,106 @@ int pixelColors[NUMPIXELS * 3]; // 16 pixels * RGB
 #define COLORSIZE 8
 #define SEMICOLON 59
 
+char colorBuffer[COLORSIZE + 1];
+
+//#define SERIAL2
+#define dataRate 38400
+#define debugRate 115200
+
 void setup() 
 {
-  Serial.begin(19200);
-  serial2.begin(115200);
-  serial2.println(F("----------ready-----------"));
+  Serial.begin(dataRate);
+  serial2.begin(debugRate);
+  serial2.println("----------ready-----------");
   pixels.begin(); // This initializes the NeoPixel library.
 }
 
+void serial2print(const char* msg)
+{
+#if defined SERIAL2
+  serial2.print(msg);
+#endif
+}
+
+void serial2println(const char* msg)
+{
+#if defined SERIAL2
+  serial2.println(msg);
+#endif
+}
+
+void serial2print(int i)
+{
+#if defined SERIAL2
+    serial2.print(i);
+#endif
+}
+
+void serial2println(int i)
+{
+#if defined SERIAL2
+    serial2.println(i);
+#endif
+}
 
 void loop() 
 {
-  //for(int i = 0; i < NUMPIXELS; i++)
-  //{    
-    //int offset = i * 3;
-    //pixelColors[offset] = 0;
-    //pixelColors[offset + 1] = 0;
-    //pixelColors[offset + 2] = 0;
-  //}
-  
-  char colorBuffer[COLORSIZE + 1];
-  if (Serial.available())
-  {
+    // assume we're reading first pixel value
     int pixelIndex = 0;
-    while(pixelIndex < NUMPIXELS)
+    int offSet = 0;
+    while (pixelIndex < NUMPIXELS)
     {
-      //serial2.print(pixelIndex);
-      //serial2.print(":");
-      
-      int colorBufferIndex = 0;
-      
-      // read until COLORSIZE bytes are read
-      bool gotNewLine = false;
-      while (colorBufferIndex < COLORSIZE)
-      {
-        if (Serial.available())
+        //serial2print(pixelIndex);
+        //serial2print(":");
+
+        int colorBufferIndex = 0;
+
+        // read until COLORSIZE bytes are read
+        bool gotNewLine = false;
+        while (colorBufferIndex < COLORSIZE)
         {
-         byte b = Serial.read(); 
- 
-         
-         
-         if (b == SEMICOLON)
-         {           
-           gotNewLine = true; 
-           break;
-         }        
+            if (Serial.available())
+            {
+                byte b = Serial.read();
 
-         
-         colorBuffer[colorBufferIndex] = b;
-         colorBufferIndex++;
+                if (b == SEMICOLON)
+                {
+                    gotNewLine = true;
+                    break;
+                }
+
+                colorBuffer[colorBufferIndex] = b;
+                colorBufferIndex++;
+            }
         }
-      }
-      
-      if (gotNewLine)
-      {
-        //serial2.println(F("NL"));
-        
-        break;
-      }
-      
-      colorBuffer[colorBufferIndex] = '\0';  
-    
-    
-      if (colorBufferIndex == COLORSIZE)
-      {
-        //serial2.print(colorBuffer);
-        //serial2.print(" ");
-        
-        
-        
-        long c = strtol(&colorBuffer[2], NULL, 16);
-        //serial2.print(F("Color: "));
-        //serial2.print(c);
-        ////serial2.print(": ");
-        int r = c >> 16 & 0xFF;
-        int g = c >> 8 & 0xFF;
-        int b = c & 0xFF;
-            
-        int offset = pixelIndex * 3;
-        pixelColors[offset] = r;
-        pixelColors[offset + 1] = g;
-        pixelColors[offset + 2] = b;
-                
-        //serial2.print("|");  
-      }
-      else
-      {
-        //serial2.println(F("Didn't get 6 bytes. Skipping pixel"));
-      }
-      
-      pixelIndex++;         
-    }       
-    
-    ////serial2.println();
-  }
 
-  // For a set of NeoPixels the first NeoPixel is 0, 
-  // second is 1, all the way up to the count of pixels minus one.
-  for(int i = 0; i < NUMPIXELS; i++)
-  {
-    int offSet = i * 3; 
-    int red = pixelColors[offSet];
-    int green = pixelColors[offSet + 1];
-    int blue = pixelColors[offSet + 2];
-    
-    // pixels.Color takes RGB values, from 0,0,0 up to 255,255,255    
-    pixels.setPixelColor(i, pixels.Color(red,green,blue));
+        if (gotNewLine)
+        {
+            //serial2println("NL");
+            break;
+        }
 
+        colorBuffer[colorBufferIndex] = '\0';
+
+        if (colorBufferIndex == COLORSIZE)
+        {
+            //serial2print(colorBuffer);
+            //serial2print(" ");
+
+            pixelColors[pixelIndex] = strtol(&colorBuffer[2], NULL, 16);
+            pixels.setPixelColor(pixelIndex, pixelColors[pixelIndex]);
+            //serial2print("|");
+        }
+
+        pixelIndex++;
+    }
+
+    // For a set of NeoPixels the first NeoPixel is 0, 
+    // second is 1, all the way up to the count of pixels minus one.
+    //for (int i = 0; i < NUMPIXELS; i++)
+    //{
+    //    pixels.setPixelColor(i, pixelColors[i]);
+    //}
     pixels.show();
-    
-  }
 }
 

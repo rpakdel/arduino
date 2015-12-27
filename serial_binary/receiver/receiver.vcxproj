@@ -70,10 +70,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Visual Micro\.receiver.vsarduino.h" />
-    <ClInclude Include="Visual Micro\.serial_binary.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="receiver.ino" />
+    <None Include="receiver.ino">
+      <FileType>CppCode</FileType>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -31,15 +31,13 @@ void setup()
 
 void printColor(char pixelIndex, long pixelColor)
 {
-    
-    Serial.print("=> ");
+    //Serial.print("=> ");
     Serial.print(pixelIndex, DEC);
     Serial.print(':');
     Serial.println(pixelColor);
-    Serial.println();
 }
 
-byte byteCount = 0;
+byte byteIndex = 0;
 char pixelIndex = -1;
 long pixelColor = 0;
 
@@ -50,44 +48,48 @@ void loop() // run over and over
         byte b = mySerial.read();
         if (b == '#')
         {
+            //Serial.print(byteIndex);
+            //Serial.println("|#");
             // read a whole frame, set the color and reset
-            if (byteCount == 10)
+            if (byteIndex == 0 || byteIndex == 6)
             {
                 printColor(pixelIndex, pixelColor);
             }
             // a new frame is starting
-            byteCount = 0;
+            byteIndex = 0;
             pixelIndex = -1;
-            pixelColor = 0;
+            pixelColor = 0;           
         }
         else
-        {
-       
+        {       
             // already read #, so this is the pixelIndex
-            if (byteCount == 1)
+            if (byteIndex == 1)
             {
-                Serial.print("PI ");
+                //Serial.print(byteIndex);
+                //Serial.print("|");
                 pixelIndex = b;
-                Serial.println(b);
+                //Serial.println(b);
             }
             else
             {
-                Serial.print(byteCount - 2);
-                Serial.print('|');
-                Serial.print(b, HEX);
-                Serial.print("=");
+                //Serial.print(byteIndex);
+                //Serial.print('|');
+                //Serial.print(b, BIN);
+                //Serial.print(":");
 
-                if (byteCount >= 2) // lsb of color
+                if (byteIndex >= 2) // lsb of color
                 {
-                    unsigned long shift = (4 - byteCount + 1) * 8;
-                    Serial.print(shift);
-                    Serial.print('<');
-                    unsigned long value = (b << shift);
-                    //pixelColor = pixelColor + (b << shift);
-                    Serial.println(value, BIN);
+                    long value = b;
+                    byte shift = (4 - byteIndex + 1) * 8;
+                    value = (value << shift);
+                    pixelColor += value;
+                    //Serial.print(" shift ");
+                    //Serial.print(shift);
+                    //Serial.print(' ');                    
+                    //Serial.println(value, BIN);
                 }
             }
         }
-        byteCount++;
+        byteIndex++;
     }
 }

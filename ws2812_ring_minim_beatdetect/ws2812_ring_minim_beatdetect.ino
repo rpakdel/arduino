@@ -28,8 +28,8 @@ long pixelColors[NUMPIXELS]; // 16 pixels
 
 char colorBuffer[COLORSIZE + 1];
 
-//#define SERIAL2
-#define dataRate 38400
+#define SERIAL2
+#define dataRate 115200
 #define debugRate 115200
 
 void setup() 
@@ -54,78 +54,88 @@ void serial2println(const char* msg)
 #endif
 }
 
-void serial2print(int i)
+void serial2print(long i)
 {
 #if defined SERIAL2
     serial2.print(i);
 #endif
 }
 
-void serial2println(int i)
+void serial2println(long i)
 {
 #if defined SERIAL2
     serial2.println(i);
 #endif
 }
 
-void loop() 
+void printColor(char pixelIndex, long pixelColor)
 {
-    // assume we're reading first pixel value
-    int pixelIndex = 0;
-    int offSet = 0;
-    while (pixelIndex < NUMPIXELS)
+    if (pixelIndex == 0)
     {
-        //serial2print(pixelIndex);
-        //serial2print(":");
-
-        int colorBufferIndex = 0;
-
-        // read until COLORSIZE bytes are read
-        bool gotNewLine = false;
-        while (colorBufferIndex < COLORSIZE)
-        {
-            if (Serial.available())
-            {
-                byte b = Serial.read();
-
-                if (b == SEMICOLON)
-                {
-                    gotNewLine = true;
-                    break;
-                }
-
-                colorBuffer[colorBufferIndex] = b;
-                colorBufferIndex++;
-            }
-        }
-
-        if (gotNewLine)
-        {
-            //serial2println("NL");
-            break;
-        }
-
-        colorBuffer[colorBufferIndex] = '\0';
-
-        if (colorBufferIndex == COLORSIZE)
-        {
-            //serial2print(colorBuffer);
-            //serial2print(" ");
-
-            pixelColors[pixelIndex] = strtol(&colorBuffer[2], NULL, 16);
-            pixels.setPixelColor(pixelIndex, pixelColors[pixelIndex]);
-            //serial2print("|");
-        }
-
-        pixelIndex++;
+      pixels.show();
     }
-
-    // For a set of NeoPixels the first NeoPixel is 0, 
-    // second is 1, all the way up to the count of pixels minus one.
-    //for (int i = 0; i < NUMPIXELS; i++)
-    //{
-    //    pixels.setPixelColor(i, pixelColors[i]);
-    //}
-    pixels.show();
+  
+    //serial2.print(pixelIndex, DEC);
+    //serial2.print("|");
+    //serial2.println(pixelColor, HEX);
+    pixelColors[pixelIndex] = pixelColor;
+    pixels.setPixelColor(pixelIndex, pixelColor);
+    
 }
 
+byte byteIndex = 0;
+char pixelIndex = -1;
+long pixelColor = 0;
+
+void loop() 
+{
+    while (Serial.available())
+    {
+        byte b = Serial.read();
+        if (b == '#')
+        {
+            //Serial.print(byteIndex);
+            //Serial.println("|#");
+            // read a whole frame, set the color and reset
+            if (byteIndex == 0 || byteIndex == 6)
+            {
+                printColor(pixelIndex, pixelColor);
+            }
+            // a new frame is starting
+            byteIndex = 0;
+            pixelIndex = -1;
+            pixelColor = 0;
+        }
+        else
+        {
+            // already read #, so this is the pixelIndex
+            if (byteIndex == 1)
+            {
+                //Serial.print(byteIndex);
+                //Serial.print("|");
+                pixelIndex = b;
+                //Serial.println(b);
+            }
+            else
+            {
+                //Serial.print(byteIndex);
+                //Serial.print('|');
+                //Serial.print(b, BIN);
+                //Serial.print(":");
+
+                if (byteIndex >= 2) // lsb of color
+                {
+                    long value = b;
+                    byte shift = (4 - byteIndex + 1) * 8;
+                    value = (value << shift);
+                    pixelColor += value;
+                    //Serial.print(" shift ");
+                    //Serial.print(shift);
+                    //Serial.print(' ');                    
+                    //Serial.println(value, BIN);
+                }
+            }
+        }
+        byteIndex++;
+    }
+}

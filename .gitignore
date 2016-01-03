@@ -11,3 +11,6 @@ obj
 packages
 node_modules
 doc
+Debug
+.vs
+__vm

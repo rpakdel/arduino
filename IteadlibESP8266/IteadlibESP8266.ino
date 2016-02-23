@@ -22,8 +22,6 @@
 #include <SoftwareSerial.h>
 #include "ESP8266.h"
 #include <Wire.h>
-#include <LCD.h>
-#include <LiquidCrystal_I2C.h>
 
 #define SSID        "Area51"
 #define PASSWORD    "bullseye"
@@ -40,63 +38,57 @@ SoftwareSerial SoftSerial(11, 10);
 #define D6_pin  6
 #define D7_pin  7
 
-LiquidCrystal_I2C	lcd(I2C_ADDR, En_pin, Rw_pin, Rs_pin, D4_pin, D5_pin, D6_pin, D7_pin);
+//LiquidCrystal_I2C	lcd(I2C_ADDR, En_pin, Rw_pin, Rs_pin, D4_pin, D5_pin, D6_pin, D7_pin);
 
 
 ESP8266 wifi(SoftSerial);
 
 void setup(void)
 {
-    lcd.begin(16, 2);
-    lcd.home();
-    lcd.setBacklightPin(BACKLIGHT_PIN, POSITIVE);
-    lcd.setBacklight(HIGH);
+    
     pinMode(13, OUTPUT);
     SoftSerial.begin(9600);
-    lcd.println("setup begin");
-
-    lcd.println("FW Version:");
-    lcd.println(wifi.getVersion().c_str());
+    
     delay(1000);
 
     if (wifi.setOprToStationSoftAP()) {
-        lcd.println("to station + softap ok");
+        //lcd.println("to station + softap ok");
     }
     else {
-        lcd.println("to station + softap err");
+        //lcd.println("to station + softap err");
     }
 
     if (wifi.joinAP(SSID, PASSWORD)) {
-        lcd.println("Join AP success");
-        lcd.print("IP: ");
-        lcd.println(wifi.getLocalIP().c_str());
+        //lcd.println("Join AP success");
+        //lcd.print("IP: ");
+        //lcd.println(wifi.getLocalIP().c_str());
     }
     else {
-        lcd.println("Join AP failure");
+        //lcd.println("Join AP failure");
     }
 
     if (wifi.enableMUX()) {
-        lcd.println("multiple ok");
+        //lcd.println("multiple ok");
     }
     else {
-        lcd.println("multiple err");
+        //lcd.println("multiple err");
     }
 
     if (wifi.startTCPServer(8090)) {
-        lcd.println("start tcp server ok");
+        //lcd.println("start tcp server ok");
     }
     else {
-        lcd.println("start tcp server err");
+        //lcd.println("start tcp server err");
     }
 
     if (wifi.setTCPServerTimeout(60)) {
-        lcd.println("set tcp server timout 60 seconds");
+        //lcd.println("set tcp server timout 60 seconds");
     }
     else {
-        lcd.println("set tcp server timout err");
+        //lcd.println("set tcp server timout err");
     }
 
-    lcd.println("setup end");
+    //lcd.println("setup end");
 }
 
 void blink()

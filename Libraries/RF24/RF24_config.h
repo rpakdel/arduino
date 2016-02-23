@@ -32,26 +32,26 @@
 //Generic Linux/ARM and //http://iotdk.intel.com/docs/master/mraa/
 #if ( defined (__linux) || defined (LINUX) ) && defined( __arm__ ) || defined(MRAA) // BeagleBone Black running GNU/Linux or any other ARM-based linux device
 
-  // The Makefile checks for bcm2835 (RPi) and copies the correct includes.h file to /arch/includes.h (Default is spidev config)
+  // The Makefile checks for bcm2835 (RPi) and copies the correct includes.h file to /utility/includes.h (Default is spidev config)
   // This behavior can be overridden by calling 'make RF24_SPIDEV=1' or 'make RF24_MRAA=1'
   // The includes.h file defines either RF24_RPi, MRAA or RF24_BBB and includes the correct RF24_arch_config.h file
-  #include "arch/includes.h"
+  #include "utility/includes.h"
 
 //ATTiny  
-#elif defined(__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__) || defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__)
+#elif defined(__AVR_ATtiny25__) || defined(__AVR_ATtiny45__) || defined(__AVR_ATtiny85__) || defined(__AVR_ATtiny24__) || defined(__AVR_ATtiny44__) || defined(__AVR_ATtiny84__) || defined(__AVR_ATtiny2313__) || defined(__AVR_ATtiny4313__)
   
   #define RF24_TINY
-  #include "arch/ATTiny/RF24_arch_config.h"
+  #include "utility/ATTiny/RF24_arch_config.h"
 
 //LittleWire  
 #elif defined(LITTLEWIRE)
   
-  #include "arch/LittleWire/RF24_arch_config.h"
+  #include "utility/LittleWire/RF24_arch_config.h"
 
 //Teensy  
 #elif defined (TEENSYDUINO)
 
-  #include "arch/Teensy/RF24_arch_config.h"  
+  #include "utility/Teensy/RF24_arch_config.h"  
 //Everything else
 #else 
 
@@ -114,7 +114,19 @@
   
 // Progmem is Arduino-specific
 // Arduino DUE is arm and does not include avr/pgmspace
-#if defined(ARDUINO) && ! defined(__arm__) && !defined (__ARDUINO_X86__)
+#if defined (ARDUINO_ARCH_ESP8266)
+
+  #define PSTR(x) (x)
+  #define printf Serial.printf
+  #define sprintf(...) os_sprintf( __VA_ARGS__ )
+  #define printf_P printf
+  #define strlen_P strlen  
+  #define PROGMEM
+  #define pgm_read_byte(addr) (*(const unsigned char *)(addr))
+  #define pgm_read_word(p) (*(p))
+  #define PRIPSTR "%s"
+
+#elif defined(ARDUINO) && ! defined(__arm__) && !defined (__ARDUINO_X86__)
 	#include <avr/pgmspace.h>
 	#define PRIPSTR "%S"
 #else

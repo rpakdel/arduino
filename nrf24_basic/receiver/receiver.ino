@@ -72,8 +72,4 @@ void loop()
         //Serial.println(F("NO DATA"));
     }
     display.display();
-
-    //Serial.println(F("Waiting"));
-    // Try again 1s later
-    delay(10);
 }

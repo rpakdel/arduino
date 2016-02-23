@@ -18,7 +18,7 @@
 #include "RF24_config.h"
 
 #if defined (RF24_LINUX)
-  #include "arch/includes.h"
+  #include "utility/includes.h"
 #elif LITTLEWIRE
   #include <LittleWireSPI/LittleWireSPI.h>
 #elif defined SOFTSPI
@@ -711,6 +711,13 @@ s   *
    * @param channel Which RF channel to communicate on, 0-127
    */
   void setChannel(uint8_t channel);
+  
+    /**
+   * Get RF communication channel
+   *
+   * @return The currently configured RF Channel
+   */
+  uint8_t getChannel(void);
 
   /**
    * Set Static Payload Size
@@ -864,21 +871,21 @@ s   *
 
   /**
    * Set the CRC length
-   *
+   * <br>CRC checking cannot be disabled if auto-ack is enabled
    * @param length RF24_CRC_8 for 8-bit or RF24_CRC_16 for 16-bit
    */
   void setCRCLength(rf24_crclength_e length);
 
   /**
    * Get the CRC length
-   *
+   * <br>CRC checking cannot be disabled if auto-ack is enabled
    * @return RF24_DISABLED if disabled or RF24_CRC_8 for 8-bit or RF24_CRC_16 for 16-bit
    */
   rf24_crclength_e getCRCLength(void);
 
   /**
    * Disable CRC validation
-   *
+   * 
    * @warning CRC cannot be disabled if auto-ack/ESB is enabled.
    */
   void disableCRC( void ) ;
@@ -1324,20 +1331,22 @@ private:
  *
  * @section News News
  *
+ * **Dec 2015**<br>
+ * - ESP8266 support via Arduino IDE
+ * - <a href="https://github.com/stewarthou/Particle-RF24">Particle Photon/Core</a> fork available
+ * - ATTiny2313/4313 support added
+ * - Python 3 support added
+ * - RF24 added to Arduino library manager
+ * - RF24 added to PlatformIO library manager
+ *
  * **March 2015**<br>
  * - Uses SPI transactions on Arduino
- * - New layout for <a href="Portability.html">easier portability:</a> Break out defines & includes for individual platforms to RF24/arch
+ * - New layout for <a href="Portability.html">easier portability:</a> Break out defines & includes for individual platforms to RF24/utility
  * - <a href="MRAA.html">MRAA</a> support added ( Galileo, Edison, etc)
  * - <a href="BBB.html">BBB/Generic Linux </a> support via spidev & MRAA
  * - Support for RPi 2 added
  * - Major Documentation cleanup & update (Move all docs to github.io)
  *
- * <b>Dec 2014 </b><br>
- * - New: Intel Galileo now supported
- * - New: Python wrapper for RPi included
- * - Documentation updated
- * - Example files have been updated
- * - See the links below and class documentation for more info.
  *
  * If issues are discovered with the documentation, please report them <a href="https://github.com/TMRh20/tmrh20.github.io/issues"> here</a>
  *
@@ -1489,8 +1498,8 @@ private:
  *                                 +-\/-+
  *                   NC      PB5  1|o   |8  Vcc --- nRF24L01  VCC, pin2 --- LED --- 5V
  *    nRF24L01  CE, pin3 --- PB3  2|    |7  PB2 --- nRF24L01  SCK, pin5
- *    nRF24L01 CSN, pin4 --- PB4  3|    |6  PB1 --- nRF24L01 MOSI, pin7
- *    nRF24L01 GND, pin1 --- GND  4|    |5  PB0 --- nRF24L01 MISO, pin6 
+ *    nRF24L01 CSN, pin4 --- PB4  3|    |6  PB1 --- nRF24L01 MOSI, pin6
+ *    nRF24L01 GND, pin1 --- GND  4|    |5  PB0 --- nRF24L01 MISO, pin7
  *                                 +----+ 
  * @endcode
  *
@@ -1524,10 +1533,27 @@ private:
  *                            PB3  4|    |11 PA2 --- nRF24L01   CE, pin3
  *                            PB2  5|    |10 PA3 --- nRF24L01  CSN, pin4
  *                            PA7  6|    |9  PA4 --- nRF24L01  SCK, pin5
- *    nRF24L01 MOSI, pin7 --- PA6  7|    |8  PA5 --- nRF24L01 MISO, pin6
+ *    nRF24L01 MISO, pin7 --- PA6  7|    |8  PA5 --- nRF24L01 MOSI, pin6
  *                                  +----+
  *	@endcode					 
  *	
+ * <br>
+ *    **ATtiny2313/4313 Pin map with CE_PIN 12 and CSN_PIN 13** <br>
+ * @code
+ *                                  +-\/-+                                                              
+ *                            PA2  1|o   |20 VCC --- nRF24L01  VCC, pin2
+ *                            PD0  2|    |19 PB7 --- nRF24L01  SCK, pin5
+ *                            PD1  3|    |18 PB6 --- nRF24L01 MOSI, pin6
+ *                            PA1  4|    |17 PB5 --- nRF24L01 MISO, pin7
+ *                            PA0  5|    |16 PB4 --- nRF24L01  CSN, pin4
+ *                            PD2  6|    |15 PB3 --- nRF24L01   CE, pin3
+ *                            PD3  7|    |14 PB2
+ *                            PD4  8|    |13 PB1
+ *                            PD5  9|    |12 PB0
+ *    nRF24L01  GND, pin1 --- GND 10|    |11 PD6
+ *                                  +----+
+ *	@endcode					 
+ *
  * <br><br><br>
  *
  *
@@ -1540,7 +1566,7 @@ private:
  * BeagleBone Black is supported via MRAA or SPIDEV.
  *
  *  @note The SPIDEV option should work with most Linux systems supporting SPIDEV. <br>
- *  Users may need to edit the RF24/arch/BBB/spi.cpp file to configure the spi device. (Defaults: "/dev/spidev1.0";  or  "/dev/spidev1.1"; )
+ *  Users may need to edit the RF24/utility/BBB/spi.cpp file to configure the spi device. (Defaults: "/dev/spidev1.0";  or  "/dev/spidev1.1"; )
  *
  * <br>
  * @section AutoInstall Automated Install 
@@ -1706,7 +1732,7 @@ private:
  *
  * Build using **spidev**:
  *
- * 1. Edit the RF24/arch/BBB/spi.cpp file
+ * 1. Edit the RF24/utility/BBB/spi.cpp file
  * 2. Change the default device definition to @code this->device = "/dev/spidev0.0";; @endcode
  * 3. Run @code sudo make install -B RF24_SPIDEV=1 @endcode
  * 4. See the gettingstarted example for an example of pin configuration
@@ -1822,13 +1848,13 @@ private:
  * @page Portability RF24 Portability
  *
  * The RF24 radio driver mainly utilizes the <a href="http://arduino.cc/en/reference/homePage">Arduino API</a> for GPIO, SPI, and timing functions, which are easily replicated
- * on various platforms. <br>Support files for these platforms are stored under RF24/arch, and can be modified to provide 
+ * on various platforms. <br>Support files for these platforms are stored under RF24/utility, and can be modified to provide 
  * the required functionality.
  * 
  * <br>
  * @section Hardware_Templates Basic Hardware Template
  *
- * **RF24/arch**
+ * **RF24/utility**
  *
  * The RF24 library now includes a basic hardware template to assist in porting to various platforms. <br> The following files can be included
  * to replicate standard Arduino functions as needed, allowing devices from ATTiny to Raspberry Pi to utilize the same core RF24 driver.
@@ -1843,13 +1869,13 @@ private:
  * | your_custom_file.h | Provides access to custom drivers for spi,gpio, etc                          | 
  *
  * <br>
- * Examples are provided via the included hardware support templates in **RF24/arch** <br>
+ * Examples are provided via the included hardware support templates in **RF24/utility** <br>
  * See the <a href="modules.html">modules</a> page for examples of class declarations 
  *
  *<br>
  * @section Device_Detection Device Detection
  *
- * 1. The main detection for Linux devices is done in the Makefile, with the includes.h from the proper hardware directory copied to RF24/arch/includes.h <br>
+ * 1. The main detection for Linux devices is done in the Makefile, with the includes.h from the proper hardware directory copied to RF24/utility/includes.h <br>
  * 2. Secondary detection is completed in RF24_config.h, causing the include.h file to be included for all supported Linux devices <br>
  * 3. RF24.h contains the declaration for SPI and GPIO objects 'spi' and 'gpio' to be used for porting-in related functions.
  *
@@ -1862,5 +1888,4 @@ private:
  */
 
 #endif // __RF24_H__
-
 

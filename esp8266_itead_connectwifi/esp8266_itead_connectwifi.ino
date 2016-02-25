@@ -20,8 +20,11 @@ SoftwareSerial EspSerial(2, 3); // RX, TX
 
 ESP8266 wifi(EspSerial);
 
-#define SSID        "Area51"
-#define PASSWORD    "bullseye"
+//#define SSID        "Reza2"
+//#define PASSWORD    "12345678"
+
+#define SSID        "Hexagon_Mining_Guest"
+#define PASSWORD    "Diamond*Hex"
 
 
 RF24 radio(9, 10);
@@ -59,6 +62,8 @@ BLYNK_WRITE(V1)
   isReceiverAck = radio.write(buffer, strlen(buffer));
 }
 
+
+
 void setup(void)
 {
     Serial.begin(9600);
@@ -74,7 +79,11 @@ void setup(void)
 	radio.stopListening();
         
 	Blynk.begin(auth, wifi, SSID, PASSWORD);
-  while (Blynk.connect() == false) {
+  delay(1000);
+  while (!Blynk.connect(60000)) 
+  {
+    Serial.println(F("Waiting to connect"));
+    delay(100);
     // Wait until connected
   }
   timer.setInterval(1000L, receiverLEDStatus);

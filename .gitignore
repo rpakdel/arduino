@@ -14,3 +14,10 @@ doc
 Debug
 .vs
 __vm
+/Libraries/Blynk
+/Libraries/BlynkESP8266_HardSer
+/Libraries/BlynkESP8266_SoftSer
+/Libraries/RF24
+/Libraries/arduino_172645
+/Libraries/arduino_161288
+*.user

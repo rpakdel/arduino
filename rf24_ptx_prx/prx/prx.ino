@@ -5,6 +5,7 @@
 #include "RF24.h"
 #include "RadioRole.h"
 #include "Payload.h"
+#include "printf.h"
 
 RF24 radio(9, 10);
 
@@ -16,6 +17,8 @@ byte pipes[][6] =
 };
 
 RadioRole role = Invalid;
+
+bool EnableAckPayload = true;
 
 // The debug-friendly names of those roles
 const char* role_friendly_name[] = 
@@ -42,7 +45,7 @@ void SetToRole(RadioRole r)
     radio.stopListening();
     break;
 
-  case PRX:   
+  case PRX:
     Serial.print("PRX> Reading from pipe address ");
     Serial.println((const char*)pipes[1]);
     radio.openWritingPipe(pipes[1]);
@@ -55,17 +58,27 @@ void SetToRole(RadioRole r)
 void setup()
 {
   Serial.begin(115200);
+  printf_begin();
 
   // Setup and configure rf radio
   radio.begin();
-  radio.setAutoAck(true);                 // Ensure autoACK is enabled
-  radio.enableAckPayload();               // Allow optional ack payloa
-  radio.setRetries(0,15);                 // Smallest time between retries, max no. of retries  
-  radio.setChannel(108);
+
+  // Ensure autoACK is enabled
+  radio.setAutoAck(true);
+
+  if (EnableAckPayload)
+  {
+    radio.enableAckPayload();
+  }
+
   radio.enableDynamicPayloads();
   radio.setPayloadSize(sizeof(Payload));
+  radio.setRetries(5,15);                 // Smallest time between retries, max no. of retries  
+  radio.setChannel(108);
   radio.setPALevel(RF24_PA_MAX);
+  radio.setDataRate(RF24_250KBPS);
   SetToRole(PRX);
+  radio.printDetails();
 
   Initialize(payload);
 }
@@ -75,28 +88,36 @@ void Transmit()
   radio.stopListening();
   Serial.print("PTX> Now sending ");
   Print(payload);
-  
+
   if (!radio.write(&payload, sizeof(Payload)))
   {
     Serial.println(F("PTX> failed"));
     return;
   }
 
-  // check payload
-  if (!radio.isAckPayloadAvailable())
+  if (EnableAckPayload)
   {
-    Serial.println(F("PTX> Blank payload"));
-    return;
-  }
+    // check payload
+    if (!radio.isAckPayloadAvailable())
+    {
+      Serial.println(F("PTX> Blank payload"));
+      return;
+    }
 
-  // read payload
-  while (radio.available())
+    // read payload
+    while (radio.available())
+    {
+      radio.read(&payload, sizeof(Payload));
+      Serial.print("PTX> Got payload ");
+      Print(payload);
+    }
+  }
+  else
   {
-    radio.read(&payload, sizeof(Payload));
-    Serial.print("PTX> Got payload ");
-  Print(payload);
+    Increment(payload);
   }
 }
+
 
 void Receive()
 {
@@ -105,12 +126,16 @@ void Receive()
   {
     radio.read(&payload, sizeof(Payload));
     Serial.print("PRX> Got ");
-  Print(payload);
-  Increment(payload);
-    Serial.print("PRX> Responding with ");
-  Print(payload);
+    Print(payload);
 
-    radio.writeAckPayload(pipeNo, &payload, sizeof(Payload));
+    if (EnableAckPayload)
+    {
+      Increment(payload);
+      Serial.print("PRX> Responding with ");
+      Print(payload);
+
+      radio.writeAckPayload(pipeNo, &payload, sizeof(Payload));
+    }
   }
 }
 

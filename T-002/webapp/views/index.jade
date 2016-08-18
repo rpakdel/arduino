@@ -1,0 +1,50 @@
+﻿doctype html
+html
+  head
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    meta(name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0")
+  body
+    #container
+      br
+      
+    script(src='/javascripts/virtualjoystick.js')
+    script.
+      console.log("touchscreen is", VirtualJoystick.touchScreenAvailable() ? "available" : "not available");
+
+        var joystick = new VirtualJoystick({
+            container : document.getElementById('container'),
+            mouseSupport : true, 
+        });
+
+        var isEnabled = false;
+        var isStop = false;
+        joystick.addEventListener('touchStart', function() { isEnabled = true; isStop = false });
+        joystick.addEventListener('touchEnd', function() { isEnabled = false; });
+        
+        setInterval(function() {
+           if (isEnabled || !isStop) {
+              var xhr = new XMLHttpRequest();
+              xhr.open('PUT', 'api/v1/bot/0/j');
+              xhr.setRequestHeader('Content-Type', 'application/json');
+              xhr.send(JSON.stringify({ x: joystick.deltaX(), y: -joystick.deltaY() }));
+           }
+
+           
+
+           if (!isEnabled) {
+              isStop = true;
+           }
+        }, 1/30 * 1000);
+
+        setInterval(function() {
+          var xhr = new XMLHttpRequest();
+          xhr.open('GET', 'api/v1/bot/0/l');
+          xhr.onload = function() {
+            if (xhr.status === 200) {
+              console.log(xhr.responseText);
+            } else {
+              console.log('Request failed.  Returned status of ' + xhr.status);
+            }
+          };
+          xhr.send();
+        }, 1000);

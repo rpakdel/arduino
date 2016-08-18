@@ -21,5 +21,11 @@
     <ClInclude Include="__vm\.ESP8266_UDPServer.vsarduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="gpsdata.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="joydata.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

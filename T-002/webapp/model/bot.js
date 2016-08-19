@@ -44,6 +44,7 @@ var Bot = class {
     set joy(j) {
         this.mJoy = j;
         var message = "j" + JSON.stringify(j);
+        console.log(message);
         this.mServer.send(message, 0, message.length, this.mStationPort, this.mStationIp, (err) => {
             if (err) {
                 console.log(err);

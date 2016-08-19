@@ -5,46 +5,29 @@ html
     meta(name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0")
   body
     #container
-      br
-      
+    br
+    #gyro 
+        Orientation
+        p alpha 
+            span#alpha
+        p beta 
+            span#beta
+        p gamma 
+            span#gamma
+        Acceleration
+        p X
+            span#x
+        p Y
+            span#y
+        p Z
+            span#z
+
+    br
     script(src='/javascripts/virtualjoystick.js')
+    script(src='/javascripts/gyro.min.js')
+    script(src='/javascripts/control.js')
     script.
-      console.log("touchscreen is", VirtualJoystick.touchScreenAvailable() ? "available" : "not available");
-
-        var joystick = new VirtualJoystick({
-            container : document.getElementById('container'),
-            mouseSupport : true, 
+        document.addEventListener("DOMContentLoaded", function() {
+            var c = new Control();
+            c.init();
         });
-
-        var isEnabled = false;
-        var isStop = false;
-        joystick.addEventListener('touchStart', function() { isEnabled = true; isStop = false });
-        joystick.addEventListener('touchEnd', function() { isEnabled = false; });
-        
-        setInterval(function() {
-           if (isEnabled || !isStop) {
-              var xhr = new XMLHttpRequest();
-              xhr.open('PUT', 'api/v1/bot/0/j');
-              xhr.setRequestHeader('Content-Type', 'application/json');
-              xhr.send(JSON.stringify({ x: joystick.deltaX(), y: -joystick.deltaY() }));
-           }
-
-           
-
-           if (!isEnabled) {
-              isStop = true;
-           }
-        }, 1/30 * 1000);
-
-        setInterval(function() {
-          var xhr = new XMLHttpRequest();
-          xhr.open('GET', 'api/v1/bot/0/l');
-          xhr.onload = function() {
-            if (xhr.status === 200) {
-              console.log(xhr.responseText);
-            } else {
-              console.log('Request failed.  Returned status of ' + xhr.status);
-            }
-          };
-          xhr.send();
-        }, 1000);

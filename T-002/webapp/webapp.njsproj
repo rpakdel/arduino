@@ -33,6 +33,8 @@
     <Compile Include="app.js" />
     <Compile Include="model\bot.js" />
     <Content Include="public\javascripts\virtualjoystick.js" />
+    <Content Include="public\javascripts\control.js" />
+    <Content Include="public\javascripts\gyro.min.js" />
     <Compile Include="routes\index.js" />
     <Compile Include="routes\botroutes.js" />
     <Compile Include="bin\www" />

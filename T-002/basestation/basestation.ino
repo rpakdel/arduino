@@ -11,28 +11,32 @@
 #include "gpsdata.h"
 #include "joydata.h"
 
-SoftwareSerial EspSerial(2, 3); // RX, TX
-#define ESP_BAUD 115200
+SoftwareSerial SoftSerial(2, 3); // RX, TX
+#define DEBUG_SERIAL SoftSerial
 #define DEBUG_BAUD 115200
+
+#define ESP_SERIAL Serial
+#define ESP_BAUD 115200
+
 
 RF24 radio(9, 10);
 byte addresses[][6] = { "1Node", "2Node" };
 
 void send(JoyData& data)
 {
-    Serial.print(F("Now sending "));
-    Serial.print(data.X);
-    Serial.print(F(", "));
-    Serial.print(data.Y);
-    Serial.print(F("..."));
+    //DEBUG_SERIAL.print(F("Now sending "));
+    //DEBUG_SERIAL.print(data.X);
+    //DEBUG_SERIAL.print(F(", "));
+    //DEBUG_SERIAL.print(data.Y);
+    //DEBUG_SERIAL.print(F("..."));
 
     if (radio.write(&data, sizeof(data)))
     {
-        Serial.println(F("ok"));
+        //DEBUG_SERIAL.println(F("ok"));
     }
     else
     {
-        Serial.println(F("no ack"));
+        //DEBUG_SERIAL.println(F("no ack"));
     }
 }
 
@@ -40,15 +44,15 @@ bool read(GpsData& gpsData)
 {
     if (!radio.isAckPayloadAvailable())
     {
-        Serial.println(F("No GPS data"));
+        DEBUG_SERIAL.println(F("No GPS data"));
         return false;
     }
 
     radio.read(&gpsData, sizeof(gpsData));
-    Serial.print(F("GPS: "));
-    Serial.print(gpsData.lat);
-    Serial.print(F(", "));
-    Serial.println(gpsData.lon);
+    DEBUG_SERIAL.print(F("GPS: "));
+    DEBUG_SERIAL.print(gpsData.lat);
+    DEBUG_SERIAL.print(F(", "));
+    DEBUG_SERIAL.println(gpsData.lon);
     return true;
 }
 
@@ -69,14 +73,14 @@ void setupRadio()
 
 void setup(void)
 {
-    Serial.begin(DEBUG_BAUD);
-    Serial.println(F("Begin setup"));
+    DEBUG_SERIAL.begin(DEBUG_BAUD);
+    DEBUG_SERIAL.println(F("Begin setup"));
 
-    EspSerial.begin(ESP_BAUD);
+    ESP_SERIAL.begin(ESP_BAUD);
 
     setupRadio();
 
-    Serial.println(F("Ready"));
+    DEBUG_SERIAL.println(F("Ready"));
 }
 
 int readCount = 0;
@@ -84,18 +88,20 @@ int readCount = 0;
 char serialBuffer[ESP_BUFFER_SIZE];
 void loop(void)
 {
-    while (EspSerial.available())
+    while (ESP_SERIAL.available())
     {
-        int c = EspSerial.read();
+        int c = ESP_SERIAL.read();
         if (c == '\n' || readCount == (ESP_BUFFER_SIZE - 1))
         {
             serialBuffer[readCount] = 0;
-            //Serial.println(serialBuffer);
+            //DEBUG_SERIAL.println(serialBuffer);
             readCount = 0;
 
             JoyData joyData;
             if (jsonDeserializeJoyData(&serialBuffer[1], joyData))
             {
+                //printJoyData(joyData, DEBUG_SERIAL);
+                DEBUG_SERIAL.println();
                 send(joyData);
             }
         }

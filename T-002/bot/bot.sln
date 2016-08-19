@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "joy_receiver", "joy_receiver.vcxproj", "{A6F31334-3C98-4AF8-895A-91742B8A5AD8}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bot", "bot.vcxproj", "{A6F31334-3C98-4AF8-895A-91742B8A5AD8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

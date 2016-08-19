@@ -259,13 +259,10 @@ void loop()
 			radio.writeAckPayload(pipeNo, &gpsData, sizeof(gpsData));
 		}
 		// Spew it
-		Serial.print(F("Got: "));
-		Serial.print(joyData.X);
-		Serial.print(F(", "));
-		Serial.println(joyData.Y);
+        printlnJoyData(joyData, Serial);
 
-		int forwardBack = joyData.X;
-		int leftRight = joyData.Y;
+		int forwardBack = joyData.Y;
+		int leftRight = joyData.X;
 		if (forwardBack > -20 && forwardBack < 20)
 		{
 			forwardBack = 0;

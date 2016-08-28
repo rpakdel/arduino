@@ -2,6 +2,8 @@
     constructor() {
         this.mIsTouching = false;
         this.mTouchDelta = { x: 0, y: 0 };
+        this.mAlphaInit = 0;
+        this.mGyro = { alpha: 0, beta: 0, gamma: 0 };
     }
 
     init() {
@@ -19,31 +21,23 @@
         setInterval(this.getGps, 3000);
     }
 
-    touchStart(evt) {
+    touchStart(self, evt) {
         var e = document.getElementById("touch");
         e.innerHTML = "Touching";
-        this.mIsTouching = true;
-        this.mTouchDelta = { x: 0, y: 0 };
+        self.mIsTouching = true;
+        self.mAlphaInit = self.mGyro.alpha;
+        self.mTouchDelta = { x: 0, y: 0 };
     }
 
-    touchEnd(evt) {
+    touchEnd(self, evt) {
         var e = document.getElementById("touch");
         e.innerHTML = "Not touching";
-        this.mIsTouching = false;
-        this.mTouchDelta = { x: 0, y: 0 };
+        self.mIsTouching = false;
+        self.mAlphaInit = self.mGyro.alpha;
+        self.mTouchDelta = { x: 0, y: 0 };
     }
 
-    enableGyro() {
-
-        var el = document.getElementById("canvas");
-        if (el) {
-            el.addEventListener("touchstart", this.touchStart, false);
-            el.addEventListener("touchend", this.touchEnd, false);
-        }
-
-        gyro.frequency = 100;
-        var self = this;
-        gyro.startTracking(function (o) {
+    trackGyro(self, o) {
             //var t = document.getElementById("tracking");
             //t.innerText = "Tracking";
             var delta = { x: 0, y: 0 };
@@ -66,13 +60,17 @@
                 } else if (alpha < -90) {
                     alpha = -90;
                 }
+
+                self.mGyro.alpha = alpha;
+                // take the difference from init
+                var alphaDiff = alpha - self.mAlphaInit;
                 // map to -255,255
-                var alphaMapped = Math.round(self.mapRange([-90, 90], [-255, 255], alpha));
+                var alphaMapped = Math.round(self.mapRange([-90, 90], [-255, 255], alphaDiff));
                 delta.x = alphaMapped;
 
                 var e = document.getElementById("alpha");
                 if (e) {
-                    
+
                     e.innerText = alpha + ", X: " + alphaMapped;
                 }
             }
@@ -92,6 +90,7 @@
                     beta = -60;
                 }
 
+                self.mGyro.beta = beta;
                 var betaMapped = Math.round(self.mapRange([-60, -5], [-255, 255], beta));
                 delta.y = betaMapped;
 
@@ -108,6 +107,8 @@
                     if (gamma == 360) {
                         gamma = 0;
                     }
+
+                    self.mGyro.gamma = gamma;
                     e.innerText = gamma;
                 }
             }
@@ -136,7 +137,20 @@
             if (o.alpha && o.beta) {
                 self.sendJoyDelta(self, delta);
             }
-        });
+    }
+
+    enableGyro() {
+
+        var el = document.getElementById("canvas");
+        if (el) {
+            var self = this;
+            el.addEventListener("touchstart", function (evt) { self.touchStart(self, evt) }, false);
+            el.addEventListener("touchend", function (evt) { self.touchEnd(self, evt) }, false);
+        }
+
+        gyro.frequency = 100;
+        var self = this;
+        gyro.startTracking(function (o) { self.trackGyro(self, o); });
     }
 
     mapRange(from, to, s) {
@@ -178,17 +192,19 @@
     sendJoyDelta(self, newDelta) {
 
 
-        //if (!self.mIsTouching) {
-        //    newDelta.x = 0;
-        //    newDelta.y = 0;
-        //}
+        if (!self.mIsTouching) {
+            newDelta.x = 0;
+            newDelta.y = 0;
+        }
+
+        console.log("Touch: " + self.mIsTouching + ", joy:" + JSON.stringify(newDelta));
 
         var cjx = document.getElementById('jx');
         cjx.innerText = newDelta.x;
         var cjy = document.getElementById('jy');
         cjy.innerText = newDelta.y;
 
-        if (self.mTouchDelta.x != newDelta.x || self.mTouchDelta.y != newDelta.y) {
+        //if (self.mTouchDelta.x != newDelta.x || self.mTouchDelta.y != newDelta.y) {
 
             self.mTouchDelta.x = newDelta.x;
             self.mTouchDelta.y = newDelta.y;
@@ -197,7 +213,7 @@
             xhr.open('PUT', 'api/v1/bot/0/joy');
             xhr.setRequestHeader('Content-Type', 'application/json');
             xhr.send(JSON.stringify(self.mTouchDelta));
-        }
+        //}
     }
 
     getIsOnline() {

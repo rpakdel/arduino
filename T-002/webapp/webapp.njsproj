@@ -43,7 +43,6 @@
     <Content Include="README.md" />
     <Content Include="typings.json" />
     <Content Include="views\index.jade" />
-    <Content Include="views\layout.jade" />
     <Content Include="views\error.jade" />
   </ItemGroup>
   <ItemGroup>

@@ -3,26 +3,52 @@ html
   head
     link(rel='stylesheet', href='/stylesheets/style.css')
     meta(name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0")
+    script(src='http://192.168.1.230:8080/target/target-script-min.js')
   body
     #container
     br
     #gyro 
-        Orientation
-        p alpha 
-            span#alpha
-        p beta 
-            span#beta
-        p gamma 
-            span#gamma
-        Acceleration
-        p X
-            span#x
-        p Y
-            span#y
-        p Z
-            span#z
+        #touch Not Touching
+        p Orientation: 
+          b alpha: 
+          span#alpha
+          |  
+          b beta: 
+          span#beta
+          |  
+          b gamma: 
+          span#gamma 
 
-    br
+        p Acc 
+          b X: 
+          span#x
+          |  
+          b Y: 
+          span#y
+          |  
+          b Z: 
+          span#z
+
+        p Joy 
+          b X: 
+          span#jx
+          |  
+          b Y: 
+          span#jy
+
+        p Bot 
+          b Online: 
+          span#online
+          |  
+          b Lng: 
+          span#lng
+          |  
+          b Lat: 
+          span#lat
+          |  
+
+
+    canvas#canvas
     script(src='/javascripts/virtualjoystick.js')
     script(src='/javascripts/gyro.min.js')
     script(src='/javascripts/control.js')

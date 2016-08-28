@@ -10,14 +10,42 @@
         // enable touch joystick
         //this.enableTouch();
 
+        // get whether bot is online every 1 second
+        this.getIsOnline();
+        setInterval(this.getIsOnline, 1000);
+
         // get gps coord every 3 seconds
+        this.getGps();
         setInterval(this.getGps, 3000);
     }
 
+    touchStart(evt) {
+        var e = document.getElementById("touch");
+        e.innerHTML = "Touching";
+        this.mIsTouching = true;
+        this.mTouchDelta = { x: 0, y: 0 };
+    }
+
+    touchEnd(evt) {
+        var e = document.getElementById("touch");
+        e.innerHTML = "Not touching";
+        this.mIsTouching = false;
+        this.mTouchDelta = { x: 0, y: 0 };
+    }
+
     enableGyro() {
+
+        var el = document.getElementById("canvas");
+        if (el) {
+            el.addEventListener("touchstart", this.touchStart, false);
+            el.addEventListener("touchend", this.touchEnd, false);
+        }
+
         gyro.frequency = 100;
         var self = this;
         gyro.startTracking(function (o) {
+            //var t = document.getElementById("tracking");
+            //t.innerText = "Tracking";
             var delta = { x: 0, y: 0 };
             if (o.alpha) {
 
@@ -45,7 +73,7 @@
                 var e = document.getElementById("alpha");
                 if (e) {
                     
-                    e.innerText = alpha + ", " + alphaMapped;
+                    e.innerText = alpha + ", X: " + alphaMapped;
                 }
             }
 
@@ -69,7 +97,7 @@
 
                 var e = document.getElementById("beta");
                 if (e) {
-                    e.innerText = beta + ", " + betaMapped;
+                    e.innerText = beta + ", Y: " + betaMapped;
                 }
             }
 
@@ -87,21 +115,21 @@
             if (o.x) {
                 var e = document.getElementById("x");
                 if (e) {
-                    e.innerText = o.x;
+                    e.innerText = o.x.toFixed(3);
                 }
             }
 
             if (o.y) {
                 var e = document.getElementById("y");
                 if (e) {
-                    e.innerText = o.y;
+                    e.innerText = o.y.toFixed(3);
                 }
             }
 
             if (o.z) {
                 var e = document.getElementById("z");
                 if (e) {
-                    e.innerText = o.z;
+                    e.innerText = o.z.toFixed(3);
                 }
             }
 
@@ -128,32 +156,37 @@
             mouseSupport: true,
         });
 
-        var self = this;
-        this.mJoystick.addEventListener('touchStart', function () {
-            self.mIsTouching = true;
-        });
-
-        this.mJoystick.addEventListener('touchEnd', function () {
-            self.mIsTouching = false;
-        });
+        //this.mJoystick.addEventListener('touchStart', () => { this.mIsTouching = true; });
+        //this.mJoystick.addEventListener('touchEnd', () => { this.mIsTouching = false; });
 
         // send joystick 
-        setInterval(function () { self.sendTouchDelta(self); }, 1 / 30 * 1000);
+        setInterval(this.sendTouchDelta, 1 / 30 * 1000);
     }
 
-    sendTouchDelta(self) {
+    sendTouchDelta() {
 
-        if (!self.mJoystick) {
+        if (!this.mJoystick) {
             return;
         }
 
-        var dx = self.mJoystick.deltaX();
-        var dy = -self.mJoystick.deltaY();
+        var dx = this.mJoystick.deltaX();
+        var dy = -this.mJoystick.deltaY();
 
-        self.sendJoyDelta(self, { x: dx, y: dy });
+        this.sendJoyDelta(self, { x: dx, y: dy });
     }
 
     sendJoyDelta(self, newDelta) {
+
+
+        //if (!self.mIsTouching) {
+        //    newDelta.x = 0;
+        //    newDelta.y = 0;
+        //}
+
+        var cjx = document.getElementById('jx');
+        cjx.innerText = newDelta.x;
+        var cjy = document.getElementById('jy');
+        cjy.innerText = newDelta.y;
 
         if (self.mTouchDelta.x != newDelta.x || self.mTouchDelta.y != newDelta.y) {
 
@@ -161,18 +194,46 @@
             self.mTouchDelta.y = newDelta.y;
 
             var xhr = new XMLHttpRequest();
-            xhr.open('PUT', 'api/v1/bot/0/j');
+            xhr.open('PUT', 'api/v1/bot/0/joy');
             xhr.setRequestHeader('Content-Type', 'application/json');
             xhr.send(JSON.stringify(self.mTouchDelta));
         }
     }
 
+    getIsOnline() {
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', 'api/v1/bot/0/isonline');
+        xhr.onload = function () {
+            var onlineE = document.getElementById("online");
+            if (xhr.status === 200) {
+                onlineE.innerText = xhr.response;
+            } else {
+                onlineE.innerText = false;
+            }
+        }
+        xhr.send();
+    }
+
     getGps() {
         var xhr = new XMLHttpRequest();
-        xhr.open('GET', 'api/v1/bot/0/l');
+        xhr.open('GET', 'api/v1/bot/0/loc');
         xhr.onload = function () {
             if (xhr.status === 200) {
-                console.log(xhr.responseText);
+                var gpsData = JSON.parse(xhr.response);
+                var lngE = document.getElementById("lng");
+                if (gpsData.valid) {
+                    lngE.innerText = gpsData.lng;
+                } else {
+                    lngE.innerText = "Inv";
+                }
+
+                var latE = document.getElementById("lat");
+                if (gpsData.valid) {
+                    latE.innerText = gpsData.lat;
+                } else {
+                    latE.innerText = "Inv";
+                }
+
             } else {
                 console.log('Request failed.  Returned status of ' + xhr.status);
             }

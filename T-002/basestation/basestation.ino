@@ -22,7 +22,7 @@ SoftwareSerial SoftSerial(2, 3); // RX, TX
 RF24 radio(9, 10);
 byte addresses[][6] = { "1Node", "2Node" };
 
-void send(JoyData& data)
+void sendToBot(JoyData& data)
 {
     //DEBUG_SERIAL.print(F("Now sending "));
     //DEBUG_SERIAL.print(data.X);
@@ -40,20 +40,42 @@ void send(JoyData& data)
     }
 }
 
-bool read(GpsData& gpsData)
+bool readFromBot(GpsData& gpsData)
 {
+    gpsData.bid = 0;
     if (!radio.isAckPayloadAvailable())
     {
         DEBUG_SERIAL.println(F("No GPS data"));
+        gpsData.valid = 0;
+        gpsData.lon = 0;
+        gpsData.lat = 0;
         return false;
     }
 
     radio.read(&gpsData, sizeof(gpsData));
+    printlnGpsData(gpsData, DEBUG_SERIAL);
     DEBUG_SERIAL.print(F("GPS: "));
-    DEBUG_SERIAL.print(gpsData.lat);
-    DEBUG_SERIAL.print(F(", "));
-    DEBUG_SERIAL.println(gpsData.lon);
-    return true;
+
+    DEBUG_SERIAL.print("lat: ");
+    if (gpsData.valid)
+    {        
+        DEBUG_SERIAL.print(gpsData.lat);
+    }
+    else
+    {
+        DEBUG_SERIAL.print("Inv");
+    }
+    
+    DEBUG_SERIAL.print(F(", lng: "));
+    if (gpsData.valid)
+    {
+        DEBUG_SERIAL.println(gpsData.lon);
+    }
+    else
+    {
+        DEBUG_SERIAL.print("Inv");
+    }
+    return gpsData.valid;
 }
 
 void setupRadio()
@@ -63,7 +85,7 @@ void setupRadio()
     radio.enableAckPayload();
     radio.setPayloadSize(sizeof(GpsData));
     radio.setRetries(15, 15);
-    radio.setPALevel(RF24_PA_LOW);
+    radio.setPALevel(RF24_PA_MAX);
     radio.setDataRate(RF24_2MBPS);
 
     radio.openWritingPipe(addresses[0]);
@@ -102,7 +124,23 @@ void loop(void)
             {
                 //printJoyData(joyData, DEBUG_SERIAL);
                 DEBUG_SERIAL.println();
-                send(joyData);
+                sendToBot(joyData);
+                GpsData gpsData;
+                gpsData.valid = 0;
+                gpsData.bid = 0;
+                gpsData.lon = 0;
+                gpsData.lat = 0;
+                
+                readFromBot(gpsData);
+             
+                char gpsBuffer[255];
+                size_t bufferLen = jsonSerializeGpsData(gpsData, &gpsBuffer[0], 255);
+                gpsBuffer[bufferLen] = '\0';
+
+                ESP_SERIAL.print("l");
+                ESP_SERIAL.println(gpsBuffer);
+                DEBUG_SERIAL.println(gpsBuffer);
+
             }
         }
         else

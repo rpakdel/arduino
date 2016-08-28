@@ -16,13 +16,26 @@
 #include "joydata.h"
 #include "gpsdata.h"
 
+#define X_PIN 0
+#define Y_PIN 1
+
 RF24 radio(9, 10);
 byte addresses[][6] = { "1Node", "2Node" };
+
+JoyData joyData;
+unsigned long lastMillis;
+
+// time to wait to ping bot even if no joy changes
+#define PING_TIME 3000 
 
 void setup() 
 {
     Serial.begin(115200);
     Serial.println(F("SENDER"));
+
+    joyData.bid = 0;
+    joyData.X = 0;
+    joyData.Y = 0;
 
     radio.begin();
 	radio.setAutoAck(true);                    
@@ -36,6 +49,7 @@ void setup()
 	//radio.openReadingPipe(0, addresses[1]);
     radio.stopListening();
 	//radio.printDetails();
+  lastMillis = millis();
 }
 
 
@@ -79,35 +93,28 @@ bool read(GpsData& gpsData)
 	return true;
 }
 
+
+
 void loop()
-{
-	int forwardBack = (510 - analogRead(0)) / 2;
+{    
+  // the joystick is rotated 90, so x and y are swapped
+  JoyData newData;
+	newData.X = (510 - analogRead(Y_PIN)) / 2;
+  newData.Y = (506 - analogRead(X_PIN)) / 2;
 
-	if (forwardBack < -255)
-	{
-		forwardBack = -255;
-	}
-	if (forwardBack > 255)
-	{
-		forwardBack = 255;
-	}
+  clampJoyData(newData, -255, 255);
+  zeroDeadZoneJoyData(newData, 20);
 
-	int leftRight = (506 - analogRead(1)) / 2;
+  unsigned long m = millis();
+  unsigned long d = m - lastMillis;
+  if (joyData.Y != newData.Y || joyData.X != newData.X || d >= PING_TIME)
+  {
+    lastMillis = m;
+    joyData.X = newData.X;
+    joyData.Y = newData.Y;
+	  send(joyData);    
 
-	if (leftRight < -255)
-	{
-		leftRight = -255;
-	}
-	if (leftRight > 255)
-	{
-		leftRight = 255;
-	}
-
-	JoyData joyData;
-	joyData.X = forwardBack;
-	joyData.Y = leftRight;
-	send(joyData);
-
-	GpsData gpsData;
-	read(gpsData);
+	  GpsData gpsData;
+	  read(gpsData);
+  }
 }

@@ -33,19 +33,14 @@ void printlnGpsData(GpsData& gpsData, Print& print)
 
 size_t jsonSerializeGpsData(GpsData &gpsData, char* buffer, size_t bufferSize)
 {
-	if (!gpsData.valid)
-	{
-		return 0;
-	}
-
 	StaticJsonBuffer<255> jsonBuffer;
 	JsonObject& root = jsonBuffer.createObject();
 
 	JsonObject& gps = root.createNestedObject("gps");
 	gps["bid"] = gpsData.bid;
 	gps["valid"] = gpsData.valid;
-	gps["lng"] = gpsData.lon;
-	gps["lat"] = gpsData.lat;
+	gps["lng"] = String(gpsData.lon, 8);
+	gps["lat"] = String(gpsData.lat, 8);
 
 	return gps.printTo(buffer, bufferSize);
 }

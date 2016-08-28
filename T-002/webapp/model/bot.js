@@ -4,8 +4,10 @@ const SERVER_PORT = 6969;
 
 var Bot = class {
     constructor(id, station_ip, station_port) {
-        this.mThis = this;
+
+        this.self = this;
         this.mId = id;
+        this.mIsOnline = false;
         this.mStationIp = station_ip;
         this.mStationPort = station_port;
         this.mJoy = {
@@ -15,18 +17,23 @@ var Bot = class {
 
         this.mServer = dgram.createSocket('udp4');
 
-        var t = this;
-        this.mServer.on('message', function (message, remote) {
+        this.mServer.on('close', () => {
+            this.mIsOnline = false;
+        });
+
+        this.mServer.on('message', (message, remote) => {
+            this.mIsOnline = true;
             console.log(remote.address + ':' + remote.port + ' - ' + message);
             var str = message.toString();
             if (str.length > 0 && str[0] == 'l') {
                 var l = str.substr(1);
-                t.mLoc = l;
+                this.mLoc = JSON.parse(l);
+                console.log(l);
             }
         });
         
-        this.mServer.on('listening', function () {
-            var address = t.mServer.address();
+        this.mServer.on('listening', () => {
+            var address = this.mServer.address();
             console.log('UDP Server listening on ' + address.address + ":" + address.port);
         });
 
@@ -34,22 +41,33 @@ var Bot = class {
     }
 
     get loc() {
-        return this.mLoc;
+        return JSON.stringify(this.mLoc);
     }
 
     get joy() {
         return this.mJoy;
     }
 
-    set joy(j) {
-        this.mJoy = j;
-        var message = "j" + JSON.stringify(j);
+    get isOnline() {
+        return this.mIsOnline;
+    }
+
+    sendJoyToBase() {
+        var message = "j" + JSON.stringify(this.mJoy);
         console.log(message);
         this.mServer.send(message, 0, message.length, this.mStationPort, this.mStationIp, (err) => {
             if (err) {
                 console.log(err);
+                this.mIsOnline = false;
+            } else {
+                this.mIsOnline = true;
             }
         });
+    }
+
+    set joy(j) {
+        this.mJoy = j;
+        this.sendJoyToBase();
     }
 }
 

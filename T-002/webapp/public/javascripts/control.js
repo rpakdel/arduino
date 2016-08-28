@@ -1,7 +1,7 @@
 ﻿var Control = class {
     constructor() {
         this.mIsTouching = false;
-        this.mTouchDelta = { x: 0, y: 0 };
+        this.mJoyData = { x: 0, y: 0 };
         this.mAlphaInit = 0;
         this.mGyro = { alpha: 0, beta: 0, gamma: 0 };
     }
@@ -10,7 +10,7 @@
         // first try the gyroscope
         this.enableGyro();
         // enable touch joystick
-        //this.enableTouch();
+        this.enableVJoy();
 
         // get whether bot is online every 1 second
         this.getIsOnline();
@@ -22,19 +22,19 @@
     }
 
     touchStart(self, evt) {
-        var e = document.getElementById("touch");
-        e.innerHTML = "Touching";
+        var e = document.getElementById("touchcanvas");
+        e.style.background = "blue";
         self.mIsTouching = true;
         self.mAlphaInit = self.mGyro.alpha;
-        self.mTouchDelta = { x: 0, y: 0 };
+        self.mJoyData = { x: 0, y: 0 };
     }
 
     touchEnd(self, evt) {
-        var e = document.getElementById("touch");
-        e.innerHTML = "Not touching";
+        var e = document.getElementById("touchcanvas");
+        e.style.background = "yellow";
         self.mIsTouching = false;
         self.mAlphaInit = self.mGyro.alpha;
-        self.mTouchDelta = { x: 0, y: 0 };
+        self.mJoyData = { x: 0, y: 0 };
     }
 
     trackGyro(self, o) {
@@ -135,13 +135,13 @@
             }
 
             if (o.alpha && o.beta) {
-                self.sendJoyDelta(self, delta);
+                self.sendJoyData(self, delta);
             }
     }
 
     enableGyro() {
 
-        var el = document.getElementById("canvas");
+        var el = document.getElementById("touchcanvas");
         if (el) {
             var self = this;
             el.addEventListener("touchstart", function (evt) { self.touchStart(self, evt) }, false);
@@ -157,14 +157,14 @@
         return to[0] + (s - from[0]) * (to[1] - to[0]) / (from[1] - from[0]);
     }
 
-    enableTouch() {
+    enableVJoy() {
         if (!VirtualJoystick.touchScreenAvailable()) {
             console.log("Touchscreen is not available.");
         } else {
             console.log("Touchscreen is available.");
         }
 
-        var c = document.getElementById('container');
+        var c = document.getElementById('vjoy');
         this.mJoystick = new VirtualJoystick({
             container: c,
             mouseSupport: true,
@@ -174,10 +174,10 @@
         //this.mJoystick.addEventListener('touchEnd', () => { this.mIsTouching = false; });
 
         // send joystick 
-        setInterval(this.sendTouchDelta, 1 / 30 * 1000);
+        setInterval(this.sendVJoyDelta, 1 / 30 * 1000);
     }
 
-    sendTouchDelta() {
+    sendVJoyDelta() {
 
         if (!this.mJoystick) {
             return;
@@ -186,33 +186,33 @@
         var dx = this.mJoystick.deltaX();
         var dy = -this.mJoystick.deltaY();
 
-        this.sendJoyDelta(self, { x: dx, y: dy });
+        this.sendJoyData(self, { x: dx, y: dy });
     }
 
-    sendJoyDelta(self, newDelta) {
+    sendJoyData(self, joyData) {
 
 
         if (!self.mIsTouching) {
-            newDelta.x = 0;
-            newDelta.y = 0;
+            joyData.x = 0;
+            joyData.y = 0;
         }
 
-        console.log("Touch: " + self.mIsTouching + ", joy:" + JSON.stringify(newDelta));
+        console.log("Touch: " + self.mIsTouching + ", joy:" + JSON.stringify(joyData));
 
         var cjx = document.getElementById('jx');
-        cjx.innerText = newDelta.x;
+        cjx.innerText = joyData.x;
         var cjy = document.getElementById('jy');
-        cjy.innerText = newDelta.y;
+        cjy.innerText = joyData.y;
 
-        //if (self.mTouchDelta.x != newDelta.x || self.mTouchDelta.y != newDelta.y) {
+        //if (self.mJoyData.x != joyData.x || self.mJoyData.y != joyData.y) {
 
-            self.mTouchDelta.x = newDelta.x;
-            self.mTouchDelta.y = newDelta.y;
+            self.mJoyData.x = joyData.x;
+            self.mJoyData.y = joyData.y;
 
             var xhr = new XMLHttpRequest();
             xhr.open('PUT', 'api/v1/bot/0/joy');
             xhr.setRequestHeader('Content-Type', 'application/json');
-            xhr.send(JSON.stringify(self.mTouchDelta));
+            xhr.send(JSON.stringify(self.mJoyData));
         //}
     }
 
@@ -234,20 +234,25 @@
         var xhr = new XMLHttpRequest();
         xhr.open('GET', 'api/v1/bot/0/loc');
         xhr.onload = function () {
-            if (xhr.status === 200) {
-                var gpsData = JSON.parse(xhr.response);
-                var lngE = document.getElementById("lng");
-                if (gpsData.valid) {
-                    lngE.innerText = gpsData.lng;
-                } else {
-                    lngE.innerText = "Inv";
-                }
+            var lngE = document.getElementById("lng");
+            var latE = document.getElementById("lat");
 
-                var latE = document.getElementById("lat");
-                if (gpsData.valid) {
-                    latE.innerText = gpsData.lat;
-                } else {
-                    latE.innerText = "Inv";
+            if (xhr.status === 200) {
+
+                if (xhr.responseText && xhr.responseText.length > 0) {
+                    var gpsData = JSON.parse(xhr.response);
+
+                    if (gpsData.valid) {
+                        lngE.innerText = gpsData.lng;
+                    } else {
+                        lngE.innerText = "Inv";
+                    }
+
+                    if (gpsData.valid) {
+                        latE.innerText = gpsData.lat;
+                    } else {
+                        latE.innerText = "Inv";
+                    }
                 }
 
             } else {

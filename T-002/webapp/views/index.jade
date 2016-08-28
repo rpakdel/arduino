@@ -5,10 +5,9 @@ html
     meta(name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0")
     script(src='http://192.168.1.230:8080/target/target-script-min.js')
   body
-    #container
+    #vjoy
     br
     #gyro 
-        #touch Not Touching
         p Orientation: 
           b alpha: 
           span#alpha
@@ -48,7 +47,7 @@ html
           |  
 
 
-    canvas#canvas
+    canvas#touchcanvas
     script(src='/javascripts/virtualjoystick.js')
     script(src='/javascripts/gyro.min.js')
     script(src='/javascripts/control.js')

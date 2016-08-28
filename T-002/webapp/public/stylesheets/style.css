@@ -5,7 +5,7 @@ body {
   background-color: #fff;
   font-size: 10px;
 }
-#container {
+#vjoy {
   position: absolute;
   min-height: 250px;
   max-width: 250px;
@@ -16,7 +16,7 @@ body {
   -webkit-user-select: none;
   -moz-user-select: none;
 }
-#canvas {
+#touchcanvas {
   width: 100%;
   height: 100%;
   background-color: #ff0;

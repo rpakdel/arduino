@@ -6,8 +6,8 @@ html
     script(src='http://192.168.1.230:8080/target/target-script-min.js')
   body
     #vjoy
-    br
-    #gyro 
+
+    #gyroinfo
         p Orientation: 
           b alpha: 
           span#alpha
@@ -45,9 +45,11 @@ html
           b Lat: 
           span#lat
           |  
-
-
+    
+    #map
+      p map
     canvas#touchcanvas
+
     script(src='/javascripts/virtualjoystick.js')
     script(src='/javascripts/gyro.min.js')
     script(src='/javascripts/control.js')

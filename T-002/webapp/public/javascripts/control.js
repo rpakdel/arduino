@@ -168,6 +168,8 @@
         this.mJoystick = new VirtualJoystick({
             container: c,
             mouseSupport: true,
+            stickRadius: 80,
+            limitStickTravel: true
         });
 
         //this.mJoystick.addEventListener('touchStart', () => { this.mIsTouching = true; });

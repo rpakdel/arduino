@@ -4,9 +4,14 @@
         this.mJoyData = { x: 0, y: 0 };
         this.mAlphaInit = 0;
         this.mGyro = { alpha: 0, beta: 0, gamma: 0 };
+        this.mGmap = null;
+        this.mMarker = null;
+        this.mJoystick = null;
     }
 
     init() {
+        var self = this;
+
         // first try the gyroscope
         this.enableGyro();
         // enable touch joystick
@@ -17,8 +22,29 @@
         setInterval(this.getIsOnline, 1000);
 
         // get gps coord every 3 seconds
-        this.getGps();
-        setInterval(this.getGps, 3000);
+        this.getGps(self);
+        setInterval(function () { self.getGps(self); }, 3000);
+
+        this.initGmaps();
+    }
+
+    initGmaps() {
+
+        var initPos = {
+            lat: 49.31369,
+            lng: -123.02844
+        };
+
+        this.mGmap = new google.maps.Map(document.getElementById('map'), {
+            center: initPos,
+            zoom: 17
+        });
+
+        this.mMarker = new google.maps.Marker({
+            position: initPos,
+            map: this.mGmap,
+            title: "T002"
+        });
     }
 
     touchStart(self, evt) {
@@ -232,7 +258,7 @@
         xhr.send();
     }
 
-    getGps() {
+    getGps(self) {
         var xhr = new XMLHttpRequest();
         xhr.open('GET', 'api/v1/bot/0/loc');
         xhr.onload = function () {
@@ -244,15 +270,19 @@
                 if (xhr.responseText && xhr.responseText.length > 0) {
                     var gpsData = JSON.parse(xhr.response);
 
-                    if (gpsData.valid) {
-                        lngE.innerText = gpsData.lng;
-                    } else {
-                        lngE.innerText = "Inv";
-                    }
+                    
 
                     if (gpsData.valid) {
+                        lngE.innerText = gpsData.lng;
                         latE.innerText = gpsData.lat;
+
+                        var latLng = new google.maps.LatLng(gpsData.lat, gpsData.lng);
+
+                        self.mMarker.setPosition(latLng);
+                        self.mGmap.panTo(latLng);
+
                     } else {
+                        lngE.innerText = "Inv";
                         latE.innerText = "Inv";
                     }
                 }
@@ -264,3 +294,8 @@
         xhr.send();
     }
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+    var c = new Control();
+    c.init();
+    });

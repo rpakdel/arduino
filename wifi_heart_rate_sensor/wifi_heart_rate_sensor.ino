@@ -15,6 +15,7 @@
 #include "heartbeat.h"
 
 #define DEBUG_SERIAL Serial
+#define WIFI_SERIAL Serial
 
 // define MYSSID and MYPASSWORD in this file
 // do not check this file into public repositories like github
@@ -141,7 +142,9 @@ void getTime()
     itpClient.stop();
 }
 
-Heartbeat heartbeats[100];
+#define MAX_HEARTBEATS 1000
+
+Heartbeat heartbeats[MAX_HEARTBEATS];
 int heartbeat_index = 0;
 
 void heartbeat_callback()
@@ -150,20 +153,32 @@ void heartbeat_callback()
     byte bpm = random(255);
     Heartbeat h = { currentSeconds, bpm };
     
+    addHeartbeat(h);
+}
+
+void addHeartbeat(Heartbeat h)
+{
+    if (h.time == 0)
+    {
+        h.time = getCurrentTimeInSeconds();
+    }
+
     heartbeats[heartbeat_index] = h;
 
     heartbeat_index++;
-    if (heartbeat_index >= 100)
+    if (heartbeat_index >= MAX_HEARTBEATS)
     {
         heartbeat_index = 0;
     }
+
+    printlnHeartbeat(h, DEBUG_SERIAL);
 }
 
-Ticker heartbeat_ticker;
+//Ticker heartbeat_ticker;
 
 void setup() 
 {
-  DEBUG_SERIAL.begin(115200);
+  DEBUG_SERIAL.begin(9600);
   delay(10);
 
   // prepare GPIO2
@@ -196,7 +211,7 @@ void setup()
   // Print the IP address
   DEBUG_SERIAL.println(WiFi.localIP());
 
-  heartbeat_ticker.attach(5, heartbeat_callback);
+  //heartbeat_ticker.attach(5, heartbeat_callback);
 }
 
 void handleGetLoc(WiFiClient& client)
@@ -427,8 +442,33 @@ void handleClient(WiFiClient& client)
     }
 }
 
+const size_t heartbeatSize = sizeof(Heartbeat);
+
+void checkHeartbeat()
+{
+    if (WIFI_SERIAL.available())
+    {
+        
+        byte heartbeatBytes[heartbeatSize];
+        size_t numBytes = WIFI_SERIAL.readBytes(heartbeatBytes, heartbeatSize);
+        if (numBytes != heartbeatSize)
+        {
+            return;
+        }
+        DEBUG_SERIAL.print("Read ");
+        DEBUG_SERIAL.print(numBytes);
+        DEBUG_SERIAL.println(" bytes");
+        Heartbeat heartbeat;
+        memcpy(&heartbeat, heartbeatBytes, heartbeatSize);
+        addHeartbeat(heartbeat);
+    }
+}
+
 void loop()
 {
+    // check for heartbeat data
+    checkHeartbeat();
+
 	// Check if a client has connected
 	WiFiClient client = server.available();
 	if (!client)

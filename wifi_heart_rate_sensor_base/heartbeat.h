@@ -2,7 +2,7 @@
 
 typedef struct _Heartbeat
 {
-    ulong time;
+    unsigned long time;
     byte bpm;
 } Heartbeat;
 
@@ -17,7 +17,7 @@ String heartbeatToJSON(const Heartbeat& heartbeat)
     return s;
 }
 
-String heartbeatsToJSON(const Heartbeat* heartbeats, int length, ulong fromTime)
+String heartbeatsToJSON(const Heartbeat* heartbeats, int length, unsigned long fromTime)
 {
     String s = "[ ";
     for (int i = 0; i < length; ++i)

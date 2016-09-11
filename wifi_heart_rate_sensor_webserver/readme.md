@@ -23,6 +23,8 @@ Client side
 * Pretty basic for now
 * Chart.js for graphing BPM
 
+Arduino and sensor hookup: https://github.com/rpakdel/arduino/tree/master/wifi_heart_rate_sensor_data
+
 TODO
 * client.flush when body for message is not needed
 * Save heartbeat data in non-destructive flash

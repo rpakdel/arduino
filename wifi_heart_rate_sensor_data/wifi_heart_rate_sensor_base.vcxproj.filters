@@ -21,5 +21,8 @@
     <ClInclude Include="__vm\.wifi_heart_rate_sensor_base.vsarduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="heartbeat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

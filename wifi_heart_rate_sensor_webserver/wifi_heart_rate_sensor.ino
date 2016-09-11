@@ -175,9 +175,11 @@ void addHeartbeat(Heartbeat h)
 }
 
 //Ticker heartbeat_ticker;
+//ADC_MODE(ADC_VCC);
 
 void setup() 
 {
+  
   DEBUG_SERIAL.begin(9600);
   delay(10);
 
@@ -466,6 +468,9 @@ void checkHeartbeat()
 
 void loop()
 {
+    //DEBUG_SERIAL.print(F("VCC: "));
+    //DEBUG_SERIAL.println(ESP.getVcc());
+
     // check for heartbeat data
     checkHeartbeat();
 

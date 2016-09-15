@@ -28,7 +28,9 @@
 
 // Create an instance of the server
 // specify the port to listen on as an argument
-WiFiServer server(80);
+#define WEBSERVER_PORT 80
+
+WiFiServer server(WEBSERVER_PORT);
 WiFiUDP itpClient;
 
 const char newLine[] PROGMEM = "\r\n";
@@ -53,15 +55,15 @@ unsigned long timeOffset = 0;
 
 // must disable visual micro deep search for this to work
 const char index_html_FileContent[] PROGMEM =
-#include "..\wifi_heart_rate_sensor\index.html"
+#include "..\wifi_heart_rate_sensor_webserver\index.html"
 ;
 
 const char client_js_FileContent[] PROGMEM =
-#include "..\wifi_heart_rate_sensor\client.js"
+#include "..\wifi_heart_rate_sensor_webserver\client.js"
 ;
 
 const char style_css_FileContent[] PROGMEM =
-#include "..\wifi_heart_rate_sensor\style.css"
+#include "..\wifi_heart_rate_sensor_webserver\style.css"
 ;
 
 // can't store this in program memory
@@ -96,7 +98,8 @@ void sendNTPpacket()
 
 unsigned long getNTPpacket()
 {
-    while (true)
+    int tryCount = 0;
+    while (tryCount < 10)
     {
         if (itpClient.parsePacket())
         {
@@ -117,6 +120,7 @@ unsigned long getNTPpacket()
         }
         DEBUG_SERIAL.print(F("."));
         delay(1000);
+        tryCount++;
     }
 
     return 0;
@@ -180,7 +184,7 @@ void addHeartbeat(Heartbeat h)
 void setup() 
 {
   
-  DEBUG_SERIAL.begin(9600);
+  DEBUG_SERIAL.begin(57600);
   delay(10);
 
   // prepare GPIO2
@@ -211,7 +215,9 @@ void setup()
   DEBUG_SERIAL.println(F("Server started"));
 
   // Print the IP address
-  DEBUG_SERIAL.println(WiFi.localIP());
+  DEBUG_SERIAL.print(WiFi.localIP());
+  DEBUG_SERIAL.print(F(":"));
+  DEBUG_SERIAL.println(WEBSERVER_PORT);
 
   //heartbeat_ticker.attach(5, heartbeat_callback);
 }

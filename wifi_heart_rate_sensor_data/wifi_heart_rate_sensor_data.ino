@@ -5,7 +5,11 @@
 
 // D3 is connected to ESP-01 RX pin (7)
 // D2 is connected to ESP-01 TX pin (2)
-SoftwareSerial WifiSerial(2, 3); // RX, TX
+SoftwareSerial softSerial(2, 3); // RX, TX
+
+#define WIFI_SERIAL Serial
+#define DEBUG_SERIAL softSerial
+
 
 const size_t heartbeatSize = sizeof(Heartbeat);
 unsigned long heartbeat_index = 0;
@@ -32,13 +36,13 @@ volatile boolean QS = false;        // becomes true when Arduoino finds a beat.
 
 void sendHeartbeatToWifiSerial(Heartbeat& h)
 {
-    //Serial.println(heartbeatSize);
+    //DEBUG_SERIAL.println(heartbeatSize);
     byte heartbeatBytes[heartbeatSize];
     memcpy(heartbeatBytes, &h, heartbeatSize);
-    size_t numBytes = WifiSerial.write(heartbeatBytes, heartbeatSize);
-    Serial.print("Sent ");
-    Serial.print(numBytes);
-    Serial.println(" bytes");
+    size_t numBytes = WIFI_SERIAL.write(heartbeatBytes, heartbeatSize);
+    DEBUG_SERIAL.print("Sent ");
+    DEBUG_SERIAL.print(numBytes);
+    DEBUG_SERIAL.println(" bytes");
 }
 
 unsigned long lastMillis = 0;
@@ -148,10 +152,11 @@ ISR(TIMER2_COMPA_vect) {                         // triggered when Timer2 counts
 
 void setup() 
 {
-    Serial.begin(115200);
-    WifiSerial.begin(9600);
+    DEBUG_SERIAL.begin(115200);
+    WIFI_SERIAL.begin(57600);
     interruptSetup();
     
+    DEBUG_SERIAL.println(F("DEBUG READY"));
 }
 
 void loop() {
@@ -159,10 +164,10 @@ void loop() {
     {
         heartbeat_callback(BPM);
     }
-    while (WifiSerial.available())
+    while (WIFI_SERIAL.available())
     {
-        Serial.print("ESP: ");
-        Serial.println(WifiSerial.readString());
+        DEBUG_SERIAL.print("ESP: ");
+        DEBUG_SERIAL.println(WIFI_SERIAL.readString());
     }
 
 }

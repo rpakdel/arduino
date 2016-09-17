@@ -8,7 +8,7 @@ typedef struct _Heartbeat
 
 String heartbeatToJSON(const Heartbeat& heartbeat)
 {
-    String s = F("{ \"unix_time_s\" : ");
+    String s = F("{ \"time\" : ");
     s += heartbeat.time;
     s += ", \"bpm\" : ";
     s += heartbeat.bpm;

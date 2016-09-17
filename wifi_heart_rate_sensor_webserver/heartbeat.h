@@ -1,14 +1,16 @@
 #pragma once
 
+#include <ESP8266WiFi.h>
+
 typedef struct _Heartbeat
 {
-    ulong time;
+    unsigned int time; // ulong on arduino is 4 bytes. On ESP it's 8 bytes
     byte bpm;
 } Heartbeat;
 
 String heartbeatToJSON(const Heartbeat& heartbeat)
 {
-    String s = F("{ \"unix_time_s\" : ");
+    String s = F("{ \"time\" : ");
     s += heartbeat.time;
     s += ", \"bpm\" : ";
     s += heartbeat.bpm;

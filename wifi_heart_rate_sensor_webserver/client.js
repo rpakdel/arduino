@@ -63,14 +63,14 @@ var checkBmp = function(self) {
             for(var i = 0; i < r.length; i++) {
                 var h = r[i];
                 var dataPoint = {
-                    x : new Date(h.unix_time_s * 1000),
+                    x : new Date(h.time * 1000),
                     y : h.bpm
                 };
 
                 self.myChart.data.datasets[0].data.push(dataPoint);
                 self.myChart.update();
                 if (i == (r.length - 1)) {
-                    self.lastTime = h.unix_time_s;
+                    self.lastTime = h.time;
                 }
             }
         } else {
@@ -83,7 +83,7 @@ var checkBmp = function(self) {
 var lastTime = 0;
 var self = this;
 checkBmp(self);
-setInterval(function () { checkBmp(self); }, 3000);
+setInterval(function () { checkBmp(self); }, 5000);
 
 
 

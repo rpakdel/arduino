@@ -11,11 +11,13 @@
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 #include <Ticker.h>
+#include <Time.h>
 
 #include "heartbeat.h"
 
-#define DEBUG_SERIAL Serial
+#define DEBUG_SERIAL Serial 
 #define WIFI_SERIAL Serial
+
 
 // define MYSSID and MYPASSWORD in this file
 // do not check this file into public repositories like github
@@ -42,9 +44,9 @@ const char content_type_css[] PROGMEM = "Content-Type: text/css";
 const char content_type_html[] PROGMEM = "Content-Type: text/html";
 const char content_type_json[] PROGMEM = "Content-Type: application/json";
 
-unsigned long startTime = 0;
-unsigned long elapsedTime = 0;
-unsigned long timeOffset = 0;
+time_t startTime = 0;
+time_t elapsedTime = 0;
+time_t timeOffset = 0;
 
 // store bmp if more than 5 second has passed
 #define BMP_TIME_DELAY 5000
@@ -96,7 +98,7 @@ void sendNTPpacket()
     itpClient.endPacket();
 }
 
-unsigned long getNTPpacket()
+time_t getNTPPacket()
 {
     int tryCount = 0;
     while (tryCount < 10)
@@ -109,16 +111,16 @@ unsigned long getNTPpacket()
                                                      // the timestamp starts at byte 40 of the received packet and is four bytes,
                                                      // or two words, long. First, extract the two words:
 
-            unsigned long highWord = word(packetBuffer[40], packetBuffer[41]);
-            unsigned long lowWord = word(packetBuffer[42], packetBuffer[43]);
+            time_t highWord = word(packetBuffer[40], packetBuffer[41]);
+            time_t lowWord = word(packetBuffer[42], packetBuffer[43]);
             // combine the four bytes (two words) into a long integer
             // this is NTP time (seconds since Jan 1 1900):
-            unsigned long secsSince1900 = highWord << 16 | lowWord;
+            time_t secsSince1900 = highWord << 16 | lowWord;
             itpClient.stop();
-            // add the different between NTP and UNIX time
+            // the different between NTP and UNIX time
             return secsSince1900 - DIFF1900TO1970;
         }
-        DEBUG_SERIAL.print(F("."));
+        //DEBUG_SERIAL.print(F("."));
         delay(1000);
         tryCount++;
     }
@@ -126,22 +128,40 @@ unsigned long getNTPpacket()
     return 0;
 }
 
-void getTime()
+void getTimeUsingNTP()
 {
     itpClient.begin(123);
-    DEBUG_SERIAL.println(F("Sending ITP packet"));
+    //DEBUG_SERIAL.println(F("Sending ITP packet"));
     sendNTPpacket();
     // assume th
-    DEBUG_SERIAL.print(F("Waiting for time"));
-    startTime = getNTPpacket();
+    //DEBUG_SERIAL.print(F("Waiting for time"));
+    startTime = getNTPPacket();
     // all subsequent millis are counted against timeOffset
     
 
+    //DEBUG_SERIAL.println();
+    //DEBUG_SERIAL.print(F("Seconds since Jan 1 1900: "));
+    //DEBUG_SERIAL.println(startTime);
+    //DEBUG_SERIAL.print(F("Local offset (ms): "));
+    //DEBUG_SERIAL.println(timeOffset);
+
+    time_t now = getCurrentTimeInSeconds();
+    
+    DEBUG_SERIAL.print(year(now));
+    DEBUG_SERIAL.print("/");
+    DEBUG_SERIAL.print(month(now));
+    DEBUG_SERIAL.print("/");
+    DEBUG_SERIAL.print(day(now));
+
+    DEBUG_SERIAL.print(" ");
+
+    DEBUG_SERIAL.print(hour(now));
+    DEBUG_SERIAL.print(":");
+    DEBUG_SERIAL.print(minute(now));
+    DEBUG_SERIAL.print(":");
+    DEBUG_SERIAL.print(second(now));
+
     DEBUG_SERIAL.println();
-    DEBUG_SERIAL.print(F("Seconds since Jan 1 1900: "));
-    DEBUG_SERIAL.println(startTime);
-    DEBUG_SERIAL.print(F("Local offset (ms): "));
-    DEBUG_SERIAL.println(timeOffset);
 
     itpClient.stop();
 }
@@ -149,22 +169,29 @@ void getTime()
 #define MAX_HEARTBEATS 1000
 
 Heartbeat heartbeats[MAX_HEARTBEATS];
-int heartbeat_index = 0;
-
-void heartbeat_callback()
-{
-    unsigned long currentSeconds = getCurrentTimeInSeconds();
-    byte bpm = random(255);
-    Heartbeat h = { currentSeconds, bpm };
-    
-    addHeartbeat(h);
-}
+unsigned int heartbeat_index = 0;
 
 void addHeartbeat(Heartbeat h)
 {
+    if (h.bpm == 0)
+    {
+        return;
+    }
+
     if (h.time == 0)
     {
         h.time = getCurrentTimeInSeconds();
+    }
+
+    // if the time hasn't changed, just replace the bpm
+    if (heartbeat_index >= 1)
+    {
+        unsigned int lastIndex = heartbeat_index - 1;
+        if (heartbeats[lastIndex].time == h.time)
+        {
+            heartbeats[lastIndex].bpm = h.bpm;
+            return;
+        }
     }
 
     heartbeats[heartbeat_index] = h;
@@ -174,12 +201,7 @@ void addHeartbeat(Heartbeat h)
     {
         heartbeat_index = 0;
     }
-
-    printlnHeartbeat(h, DEBUG_SERIAL);
 }
-
-//Ticker heartbeat_ticker;
-//ADC_MODE(ADC_VCC);
 
 void setup() 
 {
@@ -192,9 +214,7 @@ void setup()
   digitalWrite(2, 0);
   
   // Connect to WiFi network
-  DEBUG_SERIAL.println();
-  DEBUG_SERIAL.println();
-  DEBUG_SERIAL.print(F("Connecting to "));
+  //DEBUG_SERIAL.print(F("Connecting to "));
   DEBUG_SERIAL.println(MYSSID);
   
   WiFi.begin(MYSSID, MYPASSWORD);
@@ -202,24 +222,22 @@ void setup()
   while (WiFi.status() != WL_CONNECTED) 
   {
     delay(500);
-    DEBUG_SERIAL.print(F("."));
+    //DEBUG_SERIAL.print(F("."));
   }
   
-  DEBUG_SERIAL.println();
-  DEBUG_SERIAL.println(F("WiFi connected"));
+  //DEBUG_SERIAL.println();
+  //DEBUG_SERIAL.println(F("WiFi connected"));
   
-  getTime();
+  getTimeUsingNTP();
 
   // Start the server
   server.begin();
-  DEBUG_SERIAL.println(F("Server started"));
+  //DEBUG_SERIAL.println(F("Server started"));
 
   // Print the IP address
   DEBUG_SERIAL.print(WiFi.localIP());
   DEBUG_SERIAL.print(F(":"));
   DEBUG_SERIAL.println(WEBSERVER_PORT);
-
-  //heartbeat_ticker.attach(5, heartbeat_callback);
 }
 
 void handleGetLoc(WiFiClient& client)
@@ -335,7 +353,7 @@ void get_style_css(WiFiClient& client)
     client.print(s);
 }
 
-unsigned long getCurrentTimeInSeconds()
+time_t getCurrentTimeInSeconds()
 {
     unsigned long t = millis() - timeOffset;
     unsigned long sec = t / 1000;
@@ -387,10 +405,10 @@ void handleClient(WiFiClient& client)
     String req = client.readStringUntil('\r');
     client.read(); // \r
     client.read(); // \n
-    DEBUG_SERIAL.print(F("["));
-    DEBUG_SERIAL.print(req);
-    DEBUG_SERIAL.print(F("]"));
-    DEBUG_SERIAL.println();
+    //DEBUG_SERIAL.print(F("["));
+    //DEBUG_SERIAL.print(req);
+    //DEBUG_SERIAL.print(F("]"));
+    //DEBUG_SERIAL.println();
 
     // Match the request  
 
@@ -445,29 +463,34 @@ void handleClient(WiFiClient& client)
     }
     else
     {
-        DEBUG_SERIAL.println(F("Unknown request"));
+        //DEBUG_SERIAL.println(F("Unknown request"));
         client.stop();
     }
 }
 
-const size_t heartbeatSize = sizeof(Heartbeat);
+Heartbeat tmph;
+const size_t heartbeatSize = sizeof(tmph);
 
 void checkHeartbeat()
 {
-    if (WIFI_SERIAL.available())
+    while (WIFI_SERIAL.available())
     {
-        
         byte heartbeatBytes[heartbeatSize];
         size_t numBytes = WIFI_SERIAL.readBytes(heartbeatBytes, heartbeatSize);
         if (numBytes != heartbeatSize)
         {
-            return;
+            DEBUG_SERIAL.print("Incorrect size: ");
+            DEBUG_SERIAL.print(numBytes);
+            DEBUG_SERIAL.print("/");
+            DEBUG_SERIAL.println(heartbeatSize);
+            //continue;
         }
-        DEBUG_SERIAL.print("Read ");
-        DEBUG_SERIAL.print(numBytes);
-        DEBUG_SERIAL.println(" bytes");
+        DEBUG_SERIAL.print("Heartbeat ");
+        //DEBUG_SERIAL.print(numBytes);
+        //DEBUG_SERIAL.println(" bytes");
         Heartbeat heartbeat;
         memcpy(&heartbeat, heartbeatBytes, heartbeatSize);
+        printlnHeartbeat(heartbeat, DEBUG_SERIAL);
         addHeartbeat(heartbeat);
     }
 }
@@ -489,20 +512,20 @@ void loop()
 
 	// Wait until the client sends some data
     String clientInfo = client.remoteIP().toString() + ":" + client.remotePort();
-    DEBUG_SERIAL.print(F("New Client "));
-    DEBUG_SERIAL.println(clientInfo);
-    DEBUG_SERIAL.print(F("Waiting for data"));
+    //DEBUG_SERIAL.print(F("New Client "));
+    //DEBUG_SERIAL.println(clientInfo);
+    //DEBUG_SERIAL.print(F("Waiting for data"));
 	while (!client.available())
 	{
 		delay(10);
-        DEBUG_SERIAL.print(F("."));
+        //DEBUG_SERIAL.print(F("."));
 	}
-	DEBUG_SERIAL.println(F(" ok."));
+	//DEBUG_SERIAL.println(F(" ok."));
 
 	handleClient(client);
 	
-    DEBUG_SERIAL.print(F("Done "));
-    DEBUG_SERIAL.println(clientInfo);
+    //DEBUG_SERIAL.print(F("Done "));
+    //DEBUG_SERIAL.println(clientInfo);
 
 	// The client will actually be disconnected 
 	// when the function returns and 'client' object is detroyed

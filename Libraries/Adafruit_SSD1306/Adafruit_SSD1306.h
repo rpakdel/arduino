@@ -4,17 +4,19 @@ This is a library for our Monochrome OLEDs based on SSD1306 drivers
   Pick one up today in the adafruit shop!
   ------> http://www.adafruit.com/category/63_98
 
-These displays use SPI to communicate, 4 or 5 pins are required to  
+These displays use SPI to communicate, 4 or 5 pins are required to
 interface
 
-Adafruit invests time and resources providing this open source code, 
-please support Adafruit and open-source hardware by purchasing 
+Adafruit invests time and resources providing this open source code,
+please support Adafruit and open-source hardware by purchasing
 products from Adafruit!
 
-Written by Limor Fried/Ladyada  for Adafruit Industries.  
+Written by Limor Fried/Ladyada  for Adafruit Industries.
 BSD license, check license.txt for more information
 All text above, and the splash screen must be included in any redistribution
 *********************************************************************/
+#ifndef _Adafruit_SSD1306_H_
+#define _Adafruit_SSD1306_H_
 
 #if ARDUINO >= 100
  #include "Arduino.h"
@@ -27,11 +29,16 @@ All text above, and the splash screen must be included in any redistribution
 #if defined(__SAM3X8E__)
  typedef volatile RwReg PortReg;
  typedef uint32_t PortMask;
+ #define HAVE_PORTREG
 #elif defined(ARDUINO_ARCH_SAMD)
 // not supported
+#elif defined(ESP8266) || defined(ARDUINO_STM32_FEATHER)
+  typedef volatile uint32_t PortReg;
+  typedef uint32_t PortMask;
 #else
   typedef volatile uint8_t PortReg;
   typedef uint8_t PortMask;
+ #define HAVE_PORTREG
 #endif
 
 #include <SPI.h>
@@ -41,7 +48,7 @@ All text above, and the splash screen must be included in any redistribution
 #define WHITE 1
 #define INVERSE 2
 
-#define SSD1306_I2C_ADDRESS   0x3C	// 011110+SA0+RW - 0x3C or 0x3D
+#define SSD1306_I2C_ADDRESS   0x3C  // 011110+SA0+RW - 0x3C or 0x3D
 // Address for 128x32 is 0x3C
 // Address for 128x64 is 0x3D (default) or 0x3C (if SA0 is grounded)
 
@@ -138,7 +145,6 @@ class Adafruit_SSD1306 : public Adafruit_GFX {
 
   void begin(uint8_t switchvcc = SSD1306_SWITCHCAPVCC, uint8_t i2caddr = SSD1306_I2C_ADDRESS, bool reset=true);
   void ssd1306_command(uint8_t c);
-  void ssd1306_data(uint8_t c);
 
   void clearDisplay(void);
   void invertDisplay(uint8_t i);
@@ -163,7 +169,7 @@ class Adafruit_SSD1306 : public Adafruit_GFX {
   void fastSPIwrite(uint8_t c);
 
   boolean hwSPI;
-#ifdef PortReg
+#ifdef HAVE_PORTREG
   PortReg *mosiport, *clkport, *csport, *dcport;
   PortMask mosipinmask, clkpinmask, cspinmask, dcpinmask;
 #endif
@@ -172,3 +178,5 @@ class Adafruit_SSD1306 : public Adafruit_GFX {
   inline void drawFastHLineInternal(int16_t x, int16_t y, int16_t w, uint16_t color) __attribute__((always_inline));
 
 };
+
+#endif /* _Adafruit_SSD1306_H_ */

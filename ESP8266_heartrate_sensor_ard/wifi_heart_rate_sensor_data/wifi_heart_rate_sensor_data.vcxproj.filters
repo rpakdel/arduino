@@ -15,14 +15,20 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="wifi_heart_rate_sensor_base.ino" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="__vm\.wifi_heart_rate_sensor_base.vsarduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="heartbeat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="__vm\.wifi_heart_rate_sensor_data.vsarduino.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pulse_sensor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="wifi_heart_rate_sensor_data.ino" />
   </ItemGroup>
 </Project>

@@ -71,6 +71,12 @@ void heartbeat_callback(byte bpm)
     }
 }
 
+void setRTCTimeToBuildTime()
+{
+    DEBUG_SERIAL.println(F("Setting RTC time to last build time."));
+    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+}
+
 void RTCSetup()
 {
     if (!rtc.begin()) 
@@ -79,16 +85,7 @@ void RTCSetup()
         return;
     }
 
-    //if (rtc.lostPower()) 
-    //{
-    //    DEBUG_SERIAL.println(F("RTC lost power, lets set the time!"));
-        // following line sets the RTC to the date & time this sketch was compiled
-        //rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
-        // This line sets the RTC with an explicit date & time, for example to set
-        // January 21, 2014 at 3am you would call:
-    // Use GMT 
-        //rtc.adjust(DateTime(2016, 9, 15, 7, 39, 0));
-    //}
+    //setRTCTimeToBuildTime();
 
     DEBUG_SERIAL.print(F("PULSE "));
     printlnDateTime(rtc.now());
@@ -107,8 +104,9 @@ void setup()
 
 void loop() 
 {
-    if (pulse_found && BPM > 0) 
+    if (QS) 
     {
+        QS = false;
         heartbeat_callback(BPM);
     }
     while (WIFI_SERIAL.available())

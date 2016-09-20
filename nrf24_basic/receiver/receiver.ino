@@ -39,8 +39,8 @@ void setup()
     display.display();
 
     radio.begin();
-
-    radio.openReadingPipe(0, addresses[1]);
+    radio.setChannel(108);
+    radio.openReadingPipe(0, addresses[0]);
 
     radio.startListening();
 }

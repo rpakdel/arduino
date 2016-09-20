@@ -15,8 +15,8 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="wifi_heart_rate_sensor.ino" />
     <None Include="index.html" />
+    <None Include="wifi_heart_rate_sensor_webserver.ino" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="__vm\.ESP8266_WiFiWebServer.vsarduino.h">
@@ -35,6 +35,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="heartbeat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="__vm\.wifi_heart_rate_sensor_webserver.vsarduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

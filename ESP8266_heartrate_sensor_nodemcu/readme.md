@@ -1,9 +1,9 @@
-Wifi enabled heart rate sendor
+Wifi enabled heart rate sensor (similar to https://github.com/rpakdel/arduino/tree/master/ESP8266_heartrate_sensor_ard)
 
 Hardware
-* ESP8266 ESP-01 wifi module
-* Arduino (or try the ESP8266 ADC pin)
+* NodeMCU V3 (Lolin) with base board
 * Heart rate sensor (http://pulsesensor.com)
+* Voltage divider 5V to 1V with R1 (pulse sensor) = 330k Ohm and R2 (GND) = 100k (1.163)
 
 Software
 * A basic web-server with simple web-api
@@ -23,9 +23,8 @@ Client side
 * Pretty basic for now
 * Chart.js for graphing BPM
 
-Arduino and sensor hookup: https://github.com/rpakdel/arduino/tree/master/ESP8266_heartrate_sensor_ard/wifi_heart_rate_sensor_data
-
 TODO
+* Improve performance
 * client.flush when body for message is not needed
 * Save heartbeat data in non-destructive flash
 * Use Websockets to indicate pulses

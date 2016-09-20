@@ -2,6 +2,7 @@
 
 #include <ESP8266WiFi.h>
 
+#pragma pack()
 typedef struct _Heartbeat
 {
     unsigned int time; // ulong on arduino is 4 bytes. On ESP it's 8 bytes

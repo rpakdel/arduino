@@ -1,10 +1,10 @@
 #pragma once
 
-#pragma pack()
-#pragma show()
+#include <ESP8266WiFi.h>
+
 typedef struct _Heartbeat
 {
-    unsigned long time;
+    unsigned int time; // ulong on arduino is 4 bytes. On ESP it's 8 bytes
     byte bpm;
 } Heartbeat;
 
@@ -19,7 +19,7 @@ String heartbeatToJSON(const Heartbeat& heartbeat)
     return s;
 }
 
-String heartbeatsToJSON(const Heartbeat* heartbeats, int length, unsigned long fromTime)
+String heartbeatsToJSON(const Heartbeat* heartbeats, int length, ulong fromTime)
 {
     String s = "[ ";
     for (int i = 0; i < length; ++i)

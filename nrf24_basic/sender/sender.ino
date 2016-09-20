@@ -22,8 +22,8 @@ void setup()
     Serial.println(F("SENDER"));
 
     radio.begin();
-
-    radio.openWritingPipe(addresses[1]);
+    radio.setChannel(108);
+    radio.openWritingPipe(addresses[0]);
     radio.stopListening();
 }
 

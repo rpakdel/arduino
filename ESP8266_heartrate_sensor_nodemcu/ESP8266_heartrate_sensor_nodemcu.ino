@@ -7,17 +7,24 @@
  *  printed to Serial when the module is connected.
  */
 
+#include "pulse_sensor.h"
 #include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 #include <Ticker.h>
 #include <Time.h>
+#include <Wire.h>
+#include "SSD1306Ascii.h"
+#include "SSD1306AsciiWire.h"
 
 #include "heartbeat.h"
 
 #define DEBUG_SERIAL Serial 
 #define WIFI_SERIAL Serial
 
+
+
+#include "pulse_sensor.h"
 
 // define MYSSID and MYPASSWORD in this file
 // do not check this file into public repositories like github
@@ -54,18 +61,21 @@ time_t timeOffset = 0;
 // time gap in seconds from 01.01.1900 (NTP time) to 01.01.1970 (UNIX time)
 #define DIFF1900TO1970 2208988800UL
 
+#define I2C_ADDRESS 0x3C
+
+SSD1306AsciiWire oled;
 
 // must disable visual micro deep search for this to work
 const char index_html_FileContent[] PROGMEM =
-#include "..\..\ESP8266_heartrate_sensor_ard\wifi_heart_rate_sensor_webserver\index.html"
+#include "..\ESP8266_heartrate_sensor_nodemcu\index.html"
 ;
 
 const char client_js_FileContent[] PROGMEM =
-#include "..\..\ESP8266_heartrate_sensor_ard\wifi_heart_rate_sensor_webserver\client.js"
+#include "..\ESP8266_heartrate_sensor_nodemcu\client.js"
 ;
 
 const char style_css_FileContent[] PROGMEM =
-#include "..\..\ESP8266_heartrate_sensor_ard\wifi_heart_rate_sensor_webserver\style.css"
+#include "..\ESP8266_heartrate_sensor_nodemcu\style.css"
 ;
 
 // can't store this in program memory
@@ -128,6 +138,27 @@ time_t getNTPPacket()
     return 0;
 }
 
+void oledPrintTime(time_t t)
+{
+    // convert to PST (with daylight savings)
+    // subtract 7 hours or 25200 seconds
+    t -= 25200;
+
+    oled.setCursor(0, 1);
+    oled.clearToEOL();
+    oled.print(year(t));
+    oled.print("/");
+    oled.print(month(t));
+    oled.print("/");
+    oled.print(day(t));
+
+    oled.print(" ");
+
+    oled.print(hour(t));
+    oled.print(":");
+    oled.print(minute(t));
+}
+
 void getTimeUsingNTP()
 {
     itpClient.begin(123);
@@ -146,6 +177,7 @@ void getTimeUsingNTP()
     //DEBUG_SERIAL.println(timeOffset);
 
     time_t now = getCurrentTimeInSeconds();
+    oledPrintTime(now);
     
     DEBUG_SERIAL.print(year(now));
     DEBUG_SERIAL.print("/");
@@ -203,16 +235,25 @@ void addHeartbeat(Heartbeat h)
     }
 }
 
-void setup() 
+void setupOLED()
 {
-  
-  DEBUG_SERIAL.begin(57600);
+    Wire.begin();
+    oled.begin(&Adafruit128x64, I2C_ADDRESS);
+    oled.set400kHz();
+    oled.setFont(Adafruit5x7);
+    oled.clear();
+}
+
+void setup() 
+{  
+  DEBUG_SERIAL.begin(115200);
   delay(10);
 
-  // prepare GPIO2
-  pinMode(2, OUTPUT);
-  digitalWrite(2, 0);
-  
+  setupOLED();
+
+  oled.print("SSID: ");
+  oled.print(MYSSID);
+
   // Connect to WiFi network
   //DEBUG_SERIAL.print(F("Connecting to "));
   DEBUG_SERIAL.println(MYSSID);
@@ -224,6 +265,16 @@ void setup()
     delay(500);
     //DEBUG_SERIAL.print(F("."));
   }
+
+  oled.clear();
+  oled.print(WiFi.localIP());
+  oled.print(":");
+  oled.print(WEBSERVER_PORT);
+
+  // Print the IP address
+  DEBUG_SERIAL.print(WiFi.localIP());
+  DEBUG_SERIAL.print(F(":"));
+  DEBUG_SERIAL.println(WEBSERVER_PORT);
   
   //DEBUG_SERIAL.println();
   //DEBUG_SERIAL.println(F("WiFi connected"));
@@ -234,10 +285,9 @@ void setup()
   server.begin();
   //DEBUG_SERIAL.println(F("Server started"));
 
-  // Print the IP address
-  DEBUG_SERIAL.print(WiFi.localIP());
-  DEBUG_SERIAL.print(F(":"));
-  DEBUG_SERIAL.println(WEBSERVER_PORT);
+  
+
+  pulseSensorSetup();
 }
 
 void handleGetLoc(WiFiClient& client)
@@ -471,63 +521,126 @@ void handleClient(WiFiClient& client)
 Heartbeat tmph;
 const size_t heartbeatSize = sizeof(tmph);
 
-void checkHeartbeat()
+unsigned long lastHeartbeatCheck = 0;
+
+void oledPrintSignals()
 {
-    while (WIFI_SERIAL.available())
+    //oled.clear(5, 3, 25, 3);
+    //oled.print(minSignal);
+    //oled.print(" ");
+    //oled.print(maxSignal);
+    for (int i = 0; i < NUM_DISPLAY_SIGNALS; ++i)
     {
-        byte heartbeatBytes[heartbeatSize];
-        size_t numBytes = WIFI_SERIAL.readBytes(heartbeatBytes, heartbeatSize);
-        if (numBytes != heartbeatSize)
+        if (signals[i] != 0)
         {
-            DEBUG_SERIAL.print("Incorrect size: ");
-            DEBUG_SERIAL.print(numBytes);
-            DEBUG_SERIAL.print("/");
-            DEBUG_SERIAL.println(heartbeatSize);
-            //continue;
+            int col = i;
+            // map the signal value to rows 4 to 9 (64 pixels / 7 pixels per char)
+            int row = map(signals[i], 0, 300, 4, 9);
+
+            // clear the column
+            oled.clear(col, col + 1, 4, 9);
+            oled.setCursor(col, row);
+            oled.print("-");
         }
-        DEBUG_SERIAL.print("Heartbeat ");
-        //DEBUG_SERIAL.print(numBytes);
-        //DEBUG_SERIAL.println(" bytes");
-        Heartbeat heartbeat;
-        memcpy(&heartbeat, heartbeatBytes, heartbeatSize);
-        printlnHeartbeat(heartbeat, DEBUG_SERIAL);
-        addHeartbeat(heartbeat);
     }
 }
+
+void oledClearHeartbeat()
+{
+    oled.setCursor(0, 3);
+    oled.clearToEOL();
+}
+
+void oledPrintHeartbeat()
+{
+    oledClearHeartbeat();
+    oled.print(BPM);
+    if (Pulse)
+    {
+        oled.print(" ");
+        oled.print("*");
+    }
+}
+
+void checkHeartbeat()
+{
+    unsigned long m = millis();
+
+    if (QS)
+    {
+        QS = false;
+        oledPrintHeartbeat();
+        if ((m - lastHeartbeatCheck) >= 5000)
+        {
+            lastHeartbeatCheck = m;
+            Heartbeat h = { 0, BPM };
+            addHeartbeat(h);
+        }
+    }
+    else
+    {
+        if ((m - lastHeartbeatCheck) >= 5000)
+        {
+            oledClearHeartbeat();
+        }
+    }
+}
+
+unsigned long lastCurrentTimeCheck = 0;
+
+void oledPrintCurrentTime()
+{
+    unsigned long m = millis();
+    if ((m - lastCurrentTimeCheck) > 60000)
+    {
+        lastCurrentTimeCheck = m;
+        time_t now = getCurrentTimeInSeconds();
+        oledPrintTime(now);
+    }
+}
+
+void checkClient()
+{
+    // Check if a client has connected
+    WiFiClient client = server.available();
+    if (!client)
+    {
+        return;
+    }
+
+    // Wait until the client sends some data
+    String clientInfo = client.remoteIP().toString() + ":" + client.remotePort();
+    //DEBUG_SERIAL.print(F("New Client "));
+    //DEBUG_SERIAL.println(clientInfo);
+    //DEBUG_SERIAL.print(F("Waiting for data"));
+    while (!client.available())
+    {
+        delay(10);
+        //DEBUG_SERIAL.print(F("."));
+    }
+    //DEBUG_SERIAL.println(F(" ok."));
+
+    handleClient(client);
+
+    //DEBUG_SERIAL.print(F("Done "));
+    //DEBUG_SERIAL.println(clientInfo);
+
+    // The client will actually be disconnected 
+    // when the function returns and 'client' object is detroyed
+}
+
+
 
 void loop()
 {
     //DEBUG_SERIAL.print(F("VCC: "));
     //DEBUG_SERIAL.println(ESP.getVcc());
-
+    oledPrintCurrentTime();
     // check for heartbeat data
+    oledPrintSignals();
+
     checkHeartbeat();
 
-	// Check if a client has connected
-	WiFiClient client = server.available();
-	if (!client)
-	{
-		return;
-	}
-
-	// Wait until the client sends some data
-    String clientInfo = client.remoteIP().toString() + ":" + client.remotePort();
-    //DEBUG_SERIAL.print(F("New Client "));
-    //DEBUG_SERIAL.println(clientInfo);
-    //DEBUG_SERIAL.print(F("Waiting for data"));
-	while (!client.available())
-	{
-		delay(10);
-        //DEBUG_SERIAL.print(F("."));
-	}
-	//DEBUG_SERIAL.println(F(" ok."));
-
-	handleClient(client);
-	
-    //DEBUG_SERIAL.print(F("Done "));
-    //DEBUG_SERIAL.println(clientInfo);
-
-	// The client will actually be disconnected 
-	// when the function returns and 'client' object is detroyed
+    checkClient();
 }
 

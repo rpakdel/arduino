@@ -1,8 +1,8 @@
-#include <SoftwareSerial.h>
+#include <Wire.h>
 
 #include "C:/Users/User/Dropbox/git/Arduino/T-002/shared/joydata.h"
 
-SoftwareSerial dataSerial(10, 9); // rx (grey), tx (purple)
+#define BOT_I2C_ADDRESS 0x8
 
 JoyData joyData;
 
@@ -28,7 +28,8 @@ JoyData joyData;
 void setup()
 {
     Serial.begin(115200);
-    dataSerial.begin(115200);
+    Wire.begin(BOT_I2C_ADDRESS);
+    Wire.onReceive(receiveEvent);
 }
 
 void motorMove(int mindex, int mspeed)
@@ -62,6 +63,17 @@ void motorMove(int mindex, int mspeed)
     }	
 }
 
+float speedFactor = 1.25;
+
+void toggleSpeedFactor()
+{
+    speedFactor += 0.5;
+    if (speedFactor > 2)
+    {
+        speedFactor = 1;
+    }
+}
+
 void moveBot(JoyData& joyData)
 {
     // http://home.kendra.com/mauser/Joystick.html
@@ -69,8 +81,9 @@ void moveBot(JoyData& joyData)
     float w = (255 - abs(joyData.Y)) * (joyData.X / 255.0) + joyData.X;
 
     // right motor
-    int motor1Speed = (v - w) / 2.0;
-    int motor2Speed = (v + w) / 2.0;
+    float denom = 2.0 * speedFactor;
+    int motor1Speed = (v - w) / denom;
+    int motor2Speed = (v + w) / denom;
 
     motorMove(1, motor1Speed);
     motorMove(2, motor2Speed);
@@ -78,11 +91,13 @@ void moveBot(JoyData& joyData)
 
 byte joyDataBytes[joyDataSize];
 
-void loop()
+// function that executes whenever data is received from master
+// this function is registered as an event, see setup()
+void receiveEvent(int howMany) 
 {
-    while (dataSerial.available())
+    while (Wire.available())
     {
-        size_t numBytes = dataSerial.readBytes(joyDataBytes, joyDataSize);
+        size_t numBytes = Wire.readBytes(joyDataBytes, joyDataSize);
         if (numBytes != joyDataSize)
         {
             Serial.println("Incorrect data size");
@@ -90,6 +105,15 @@ void loop()
         JoyData joyData;
         memcpy(&joyData, joyDataBytes, joyDataSize);
         //printlnJoyData(joyData, Serial);
+        if (joyData.Button > 127)
+        {
+            toggleSpeedFactor();
+        }
         moveBot(joyData);
     }
+}
+
+void loop()
+{
+    
 }

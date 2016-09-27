@@ -24,12 +24,10 @@
 RF24 radio(9, 10);
 byte addresses[][6] = { "1Node", "2Node" };
 
-#define MOTOR_RX -1 // purple
-#define MOTOR_TX 4 // grey
-SoftwareSerial motorSerial(MOTOR_RX, MOTOR_TX);
-
-#define I2C_ADDRESS 0x3C
+#define OLED_I2C_ADDRESS 0x3C
 SSD1306AsciiWire display;
+
+#define MOTOR_I2C_ADDRESS 0x8
 
 #define GPS_RX 2
 #define GPS_TX -1
@@ -43,7 +41,7 @@ void initDisplay()
 {
     //Serial.println(F("Init OLED"));
     Wire.begin();
-    display.begin(&Adafruit128x64, I2C_ADDRESS);
+    display.begin(&Adafruit128x64, OLED_I2C_ADDRESS);
     display.set400kHz();
     display.setFont(Adafruit5x7);
     display.clear();
@@ -71,11 +69,6 @@ void initGPS()
     gpsSerial.begin(GPS_BAUD);
 }
 
-void initMotor()
-{
-    motorSerial.begin(115200);
-}
-
 void setup()
 {
     DEBUG_SERIAL.begin(115200);
@@ -90,7 +83,6 @@ void setup()
     display.print(F("T-002: Init"));
 
     initRadio();
-    initMotor();
     initGPS();
     
     // ensure the gps serial port is listening
@@ -129,8 +121,12 @@ static byte joyDataBytes[joyDataSize];
 void sendJoyDataToMotor(JoyData& joyData)
 {
     memcpy(&joyDataBytes[0], &joyData, joyDataSize);
-    motorSerial.write(&joyDataBytes[0], joyDataSize);
+    Wire.beginTransmission(MOTOR_I2C_ADDRESS);
+    Wire.write(&joyDataBytes[0], joyDataSize);
+    Wire.endTransmission();
+    //motorSerial.write(&joyDataBytes[0], joyDataSize);
 }
+
 
 byte displayGpsData(GpsData& data, byte rowIndex)
 {

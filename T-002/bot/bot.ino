@@ -11,38 +11,22 @@
 
 #include <RF24_config.h>
 #include <RF24.h>
-#include <printf.h>
 #include <nRF24L01.h>
 
 #include <SoftwareSerial.h>
 #include <TinyGPS++.h>
 
-#include "joydata.h"
-#include "gpsdata.h"
+#include "../../T-002/shared/joydata.h"
+#include "../../T-002/shared/gpsdata.h"
+
+#define DEBUG_SERIAL Serial
 
 RF24 radio(9, 10);
 byte addresses[][6] = { "1Node", "2Node" };
 
-JoyData joyData;
-GpsData gpsData;
-
-// Front of robot is where the motor driver heat sink is
-// Motor 1 is on the right side when viewed from the front. 
-// Motor 1 is left motor when looking at the motors from the back
-// Motor 1 connected to OUT1 and OUT2 of L298H motor driver
-#define dir1PinA 8
-#define dir2PinA 7
-// needs to be PWM to control motor speed
-#define speedPinA 6
-
-
-// Motor 2 is on the left side when viewed from the front (heat sink side)
-// Motor 2 is on the right when looking at the motor from the back
-// Motor 2 is connected to OUT3 and OUT4 of L298H motor driver
-#define dir1PinB 3
-#define dir2PinB 4
- // Needs to be a PWM pin to be able to control motor speed
-#define speedPinB 5
+#define MOTOR_RX -1 // purple
+#define MOTOR_TX 4 // grey
+SoftwareSerial motorSerial(MOTOR_RX, MOTOR_TX);
 
 #define I2C_ADDRESS 0x3C
 SSD1306AsciiWire display;
@@ -53,6 +37,8 @@ SSD1306AsciiWire display;
 SoftwareSerial gpsSerial(GPS_RX, GPS_TX);
 TinyGPSPlus tinyGPS;
 
+static GpsData gpsData;
+
 void initDisplay()
 {
     //Serial.println(F("Init OLED"));
@@ -61,52 +47,12 @@ void initDisplay()
     display.set400kHz();
     display.setFont(Adafruit5x7);
     display.clear();
-    display.setCursor(0, 0);    
+    display.setCursor(0, 0);
     //Serial.println(F("OLED ready"));
 }
 
-bool GetLatLngAlt(TinyGPSPlus &tiny, char* buffer, int len)
+void initRadio()
 {
-    if (!tiny.location.isValid())
-    {
-        return false;
-    }
-
-    //Serial.println(F("Got location"));
-    char lat[16];
-    dtostrf(tiny.location.lat(), 9, 6, lat);
-    char lng[16];
-    dtostrf(tiny.location.lng(), 10, 6, lng);
-    char alt[16];
-    dtostrf(tiny.altitude.meters(), 6, 2, alt);
-    snprintf(
-        buffer,
-        len,
-        "%s,%s,%s",
-        lat, lng, alt);
-    return true;
-}
-
-void setup()
-{
-  initDisplay();
-
-  gpsData.valid = false;
-  gpsSerial.begin(GPS_BAUD);
-
-  display.print(F("T-002: Init"));
-  
-    pinMode(dir1PinA, OUTPUT);
-    pinMode(dir2PinA, OUTPUT);
-    pinMode(speedPinA, OUTPUT);
-    pinMode(dir1PinB, OUTPUT);
-    pinMode(dir2PinB, OUTPUT);
-    pinMode(speedPinB, OUTPUT);
-
-    Serial.begin(115200);
-    //Serial.println(F("Receiver"));
-    
-
     radio.begin();
     radio.setAutoAck(1);
     radio.enableAckPayload();
@@ -117,128 +63,137 @@ void setup()
     radio.openWritingPipe(addresses[1]);
     radio.openReadingPipe(0, addresses[0]);
     radio.startListening();
+}
+
+void initGPS()
+{
+    gpsData.IsValid = false;
+    gpsSerial.begin(GPS_BAUD);
+}
+
+void initMotor()
+{
+    motorSerial.begin(115200);
+}
+
+void setup()
+{
+    DEBUG_SERIAL.begin(115200);
+
+    DEBUG_SERIAL.print(F("Size of joystick data (bytes): "));
+    DEBUG_SERIAL.println(joyDataSize);
+
+    DEBUG_SERIAL.print(F("Size of GPS data (bytes): "));
+    DEBUG_SERIAL.println(gpsDataSize);
+
+    initDisplay();
+    display.print(F("T-002: Init"));
+
+    initRadio();
+    initMotor();
+    initGPS();
+    
+    // ensure the gps serial port is listening
+    gpsSerial.listen();
 
     display.setCursor(0, 0);
+    display.clearToEOL();
     display.print(F("T-002: Ready"));
 }
 
-void motorMove(int mindex, int mspeed)
+byte displayJoyData(JoyData& joyData, byte rowIndex)
 {
-  // setup pins based on motor being moved
-    int speedPin = speedPinA;
-    int dir1pin = dir1PinA;
-    int dir2pin = dir2PinA;
+    display.setCursor(0, rowIndex);
+    display.clearToEOL();
+    display.print("X: ");
+    display.print(joyData.X);
+    rowIndex++;
 
-    if (mindex == 1)
-    {
-        speedPin = speedPinB;
-        dir1pin = dir1PinB;
-        dir2pin = dir2PinB;
+    display.setCursor(0, rowIndex);
+    display.clearToEOL();
+    display.print("Y: ");
+    display.print(joyData.Y);
+    rowIndex++;
 
-   display.setCursor(0, 2);
-   display.clearToEOL();
-   display.print("Motor 2: ");
-   display.print(mspeed);   
-    }
-  else
-  {
-    display.setCursor(0, 1);
-   display.clearToEOL();
-   display.print("Motor 1: ");
-   display.print(mspeed);   
-  }
+    display.setCursor(0, rowIndex);
+    display.clearToEOL();
+    display.print("B: ");
+    display.print(joyData.Button);
+    rowIndex++;
 
-    if (mspeed >= 0)
-    {
-        // forward
-        digitalWrite(dir1pin, LOW);
-        digitalWrite(dir2pin, HIGH);
-
-        analogWrite(speedPin, mspeed);
-    }
-    else
-    {
-        digitalWrite(dir1pin, HIGH);
-        digitalWrite(dir2pin, LOW);
-
-        analogWrite(speedPin, -mspeed);
-    }	
+    return rowIndex;
 }
 
-void move(JoyData& joyData)
+static byte joyDataBytes[joyDataSize];
+
+void sendJoyDataToMotor(JoyData& joyData)
 {
-    // http://home.kendra.com/mauser/Joystick.html
-    float v = (255 - abs(joyData.X)) * (joyData.Y / 255.0) + joyData.Y;
-    float w = (255 - abs(joyData.Y)) * (joyData.X / 255.0) + joyData.X;
-
-    // right motor
-    int motor1Speed = (v - w) / 2.0;
-    int motor2Speed = (v + w) / 2.0;
-
-    motorMove(1, motor1Speed);
-    motorMove(2, motor2Speed);
+    memcpy(&joyDataBytes[0], &joyData, joyDataSize);
+    motorSerial.write(&joyDataBytes[0], joyDataSize);
 }
 
-void displayGpsData(GpsData& data)
+byte displayGpsData(GpsData& data, byte rowIndex)
 {
-    display.setCursor(0, 3);
+    display.setCursor(0, rowIndex);
     display.clearToEOL();
-    display.print("lat: ");
-    if (data.valid)
+    display.print("Lat: ");
+    if (data.IsValid)
     {
-        display.print(data.lat);
+        display.print(data.Lat);
     }
     else
     {
-        display.print("inv");
+        display.print("Inv");
     }
+    rowIndex++;
 
-    display.setCursor(0, 4);
+    display.setCursor(0, rowIndex);
     display.clearToEOL();
-    display.print("lng: ");
-    if (data.valid)
+    display.print(F("Lon: "));
+    if (data.IsValid)
     {
-        display.print(data.lon);
+        display.print(data.Lon);
     }
     else
     {
-        display.print("inv");
+        display.print("Inv");
     }
+    rowIndex++;
+
+    display.setCursor(0, rowIndex);
+    display.clearToEOL();
+    display.print(F("Alt: "));
+    if (data.IsValid)
+    {
+        display.print(data.Alt);
+    }
+    else
+    {
+        display.print("Inv");
+    }
+    rowIndex++;
+
+    return rowIndex;
 }
 
 void loop()
 {
-    
-    byte pipeNo;
+    byte pipeNo = 0;
     if (radio.available(&pipeNo))
     {
+        JoyData joyData;
         radio.read(&joyData, sizeof(JoyData));
         // respond with gps data
-        radio.writeAckPayload(pipeNo, &gpsData, sizeof(gpsData));
-        if (gpsData.valid)
-        {
-            //Serial.print(F("Pipe "));
-            //Serial.print(pipeNo);
-            //Serial.print(F(", Sending "));
-            //Serial.print(gpsData.lon);
-            //Serial.print(F(", "));
-            //Serial.println(gpsData.lat);            
-        }
-        // Spew it
-        printlnJoyData(joyData, Serial);
+        radio.writeAckPayload(pipeNo, &gpsData, gpsDataSize);
 
         // clamp the values to [-255, 255]
-        clampJoyData(joyData, -255, 255);
+        clampJoyDataXY(joyData, -255, 255);
         // zero small values
-        zeroDeadZoneJoyData(joyData, 20);
+        zeroDeadZoneJoyData(joyData, 20, 10);
 
-        printlnJoyData(joyData, Serial);
-        
-        move(joyData);
-    }
-    else
-    {
-        //Serial.println(F("NO DATA"));
+        displayJoyData(joyData, 2);
+
+        sendJoyDataToMotor(joyData);
     }
 
     while (gpsSerial.available() > 0)
@@ -246,10 +201,21 @@ void loop()
         int g = gpsSerial.read();
         if (tinyGPS.encode(g))
         {
-            gpsData.valid = true;
-            gpsData.lat = tinyGPS.location.lat();
-            gpsData.lon = tinyGPS.location.lng();
-            displayGpsData(gpsData);
+            gpsData.Id = 0;
+            gpsData.IsValid = true;
+            gpsData.Lat = tinyGPS.location.lat();
+            gpsData.Lon = tinyGPS.location.lng();
+            if (tinyGPS.altitude.isValid())
+            {
+                gpsData.Alt = tinyGPS.altitude.meters();
+            }
+            else
+            {
+                gpsData.Alt = 0;
+            }
+            displayGpsData(gpsData, 5);
         }
+
     }
+    
 }

@@ -15,17 +15,20 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="joy_sender.ino" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="__vm\.joy_sender.vsarduino.h">
+    <ClInclude Include="__vm\.joy_receiver.vsarduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="gpsdata.h">
+    <ClInclude Include="__vm\.bot.vsarduino.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="__vm\.bot_motor.vsarduino.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\shared\joydata.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="bot_motor.ino" />
   </ItemGroup>
 </Project>

@@ -1,7 +1,5 @@
 #pragma once
 
-#pragma pack()
-#pragma show()
 typedef struct _Heartbeat
 {
     unsigned long time;

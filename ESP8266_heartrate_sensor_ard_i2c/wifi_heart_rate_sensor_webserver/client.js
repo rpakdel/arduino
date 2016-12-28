@@ -82,10 +82,10 @@ var checkBmp = function(self) {
 var lastTime = 0;
 var self = this;
 checkTime();
-setInterval(checkTime, 10000);
+setInterval(checkTime, 60 * 1000); // per minute
 
 checkBmp(self);
-setInterval(function () { checkBmp(self); }, 5000);
+setInterval(function () { checkBmp(self); }, 15000); // every 10 second
 
 
 

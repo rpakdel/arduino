@@ -27,6 +27,9 @@
     <ClInclude Include="pulse_sensor.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\shared\rtc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="wifi_heart_rate_sensor_data.ino" />

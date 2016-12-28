@@ -57,20 +57,20 @@ const char content_type_json[] PROGMEM = "Content-Type: application/json";
 
 // must disable visual micro deep search for this to work
 const char index_html_FileContent[] PROGMEM =
-#include "..\..\ESP8266_heartrate_sensor_ard\wifi_heart_rate_sensor_webserver\index.html"
+#include <..\..\ESP8266_heartrate_sensor_ard_i2c\wifi_heart_rate_sensor_webserver\index.html>
 ;
 
 const char client_js_FileContent[] PROGMEM =
-#include "..\..\ESP8266_heartrate_sensor_ard\wifi_heart_rate_sensor_webserver\client.js"
+#include <..\..\ESP8266_heartrate_sensor_ard_i2c\wifi_heart_rate_sensor_webserver\client.js>
 ;
 
 const char style_css_FileContent[] PROGMEM =
-#include "..\..\ESP8266_heartrate_sensor_ard\wifi_heart_rate_sensor_webserver\style.css"
+#include <..\..\ESP8266_heartrate_sensor_ard_i2c\wifi_heart_rate_sensor_webserver\style.css>
 ;
 
 
 
-#define MAX_HEARTBEATS 100
+#define MAX_HEARTBEATS 2000
 
 Heartbeat heartbeats[MAX_HEARTBEATS];
 unsigned int heartbeat_index = 0;
@@ -228,10 +228,12 @@ void get_index_html(WiFiClient& client)
     // Note: don't pass FPSTR, too slow
 
     // HTTP header
-    client.println(String(FPSTR(http_status_200_OK)));    
-    client.println(String(FPSTR(content_type_html)));
-
-    client.println(); 
+    String s = FPSTR(http_status_200_OK);
+    s += FPSTR(newLine);
+    s += FPSTR(content_type_html);
+    s += FPSTR(newLine);
+    s += FPSTR(newLine);
+    client.print(s);
 
     // HTTP body
     client.print(String(FPSTR(index_html_FileContent)));
@@ -241,11 +243,12 @@ void get_client_js(WiFiClient& client)
 {
     // Note: don't pass FPSTR, too slow
 
-    // HTTP header
-    client.println(String(FPSTR(http_status_200_OK)));
-    client.println(String(FPSTR(content_type_js)));
-    
-    client.println();
+    String s = FPSTR(http_status_200_OK);
+    s += FPSTR(newLine);
+    s += FPSTR(content_type_js);
+    s += FPSTR(newLine);
+    s += FPSTR(newLine);
+    client.print(s);
 
     // HTTP body
     client.println(String(FPSTR(client_js_FileContent)));
@@ -253,13 +256,12 @@ void get_client_js(WiFiClient& client)
 
 void get_style_css(WiFiClient& client)
 {
-    // Note: don't pass FPSTR, too slow
-
-    // HTTP header
-    client.println(String(FPSTR(http_status_200_OK)));
-    client.println(String(FPSTR(content_type_css)));
-
-    client.println();
+    String s = FPSTR(http_status_200_OK);
+    s += FPSTR(newLine);
+    s += FPSTR(content_type_css);
+    s += FPSTR(newLine);
+    s += FPSTR(newLine);
+    client.print(s);
     
     // HTTP body
     client.println(String(FPSTR(style_css_FileContent)));
@@ -270,32 +272,61 @@ void get_time(WiFiClient& client)
 {
     time_t currentSeconds = getCurrentTime(startTime);
 
-    // Note: don't pass FPSTR, too slow
-
-    // HTTP header
-    client.println("HTTP/1.1 200 OK");
-    client.println("Content-Type: application/json");
-    
-    client.println();
-
-    // HTTP body
-    client.print("{\"time\":");
-    client.print(String(currentSeconds));
-    client.print("}");
-}
-
-void get_bpm(WiFiClient& client, ulong fromTime)
-{
-    String heartbeatsJSON = heartbeatsToJSON(heartbeats, heartbeat_index, fromTime, DEBUG_SERIAL);
-    
     String s = FPSTR(http_status_200_OK);
     s += FPSTR(newLine);
     s += FPSTR(content_type_json);
     s += FPSTR(newLine);
     s += FPSTR(newLine);
-    s += heartbeatsJSON;
-    //DEBUG_SERIAL.println(s);
+    s += FPSTR("{ \"time\": ");
+    s += String(currentSeconds);
+    s += FPSTR(" }");
     client.print(s);
+}
+
+void get_bpm(WiFiClient& client, ulong fromTime)
+{
+    //String heartbeatsJSON = heartbeatsToJSON(heartbeats, heartbeat_index, fromTime, DEBUG_SERIAL);
+    
+    String s0 = FPSTR(http_status_200_OK);
+    s0 += FPSTR(newLine);
+    s0 += FPSTR(content_type_json);
+    s0 += FPSTR(newLine);
+    s0 += FPSTR(newLine);
+    client.print(s0);
+    
+    client.print("[");
+    int accum = 0;
+    String s10 = "";
+    for (int i = 0; i < heartbeat_index; ++i)
+    {
+        Heartbeat h = heartbeats[i];
+        // skip if heart beat is less than given time
+        if (h.time <= fromTime)
+        {
+            continue;
+        }
+
+        char hs[31];
+        heartbeatToJSON(h, hs);
+        s10 += String(hs);
+        if (i < (heartbeat_index - 1))
+        {
+            s10 += ",";
+        }
+
+        accum++;
+        if (accum >= 10)
+        {
+            accum = 0;
+            client.print(s10);
+            s10 = "";
+        }
+    }
+    if (s10.length() > 0)
+    {
+        client.print(s10);
+    }
+    client.print("]");
 }
 
 void get_favicon(WiFiClient& client)
@@ -307,6 +338,7 @@ void get_favicon(WiFiClient& client)
 
 void route_client(WiFiClient& client, Print& print)
 {
+    //unsigned long t0 = millis();
     //print.print(F("Client: "));
     //print.print(client.remoteIP().toString());
     //print.print(F(":"));
@@ -323,44 +355,44 @@ void route_client(WiFiClient& client, Print& print)
 
     // Match the request  
 
-    if (req.indexOf(F("GET / ")) >= 0) // space after / to make sure it's root
+    if (req.indexOf(("GET / ")) >= 0) // space after / to make sure it's root
     {
-        print.print(F(" INDEX "));
+        //print.print((" INDEX "));
         get_index_html(client);
     }
-    else if (req.indexOf(F("GET /client.js")) >= 0)
+    else if (req.indexOf(("GET /client.js")) >= 0)
     {
-        print.print(F(" CLIENT.JS "));
+        //print.print((" CLIENT.JS "));
         get_client_js(client);
     }
-    else if (req.indexOf(F("GET /style.css")) >= 0)
+    else if (req.indexOf(("GET /style.css")) >= 0)
     {
-        print.print(F(" STYLE.CSS "));
+        //print.print((" STYLE.CSS "));
         get_style_css(client);
     }
-    else if (req.indexOf(F("GET /favicon.ico")) >= 0)
+    else if (req.indexOf(("GET /favicon.ico")) >= 0)
     {
-        print.print(F(" FAVICON "));
+        //print.print((" FAVICON "));
         get_favicon(client);
     }
-    else if (req.indexOf(F("GET /api/v1/time")) >= 0)
+    else if (req.indexOf(("GET /api/v1/time")) >= 0)
     {
         //print.print(F(" TIME "));
         get_time(client);
     }
-    else if (req.indexOf(F("GET /api/v1/bpm")) >= 0)
+    else if (req.indexOf(("GET /api/v1/bpm")) >= 0)
     {
-        print.print(F(" BPM "));
+        //print.print((" BPM "));
         // if gt is specifed, return heartbeats from time greater than
         // parameter
-        int startIndex = req.indexOf(F("?gt="));
+        int startIndex = req.indexOf(("?gt="));
         if (startIndex >= 0)
         {
             String lastTimeValueStr;
 
             int length = 4; // strlen("?gt=");
             startIndex += length;
-            int endIndex = req.indexOf(F("&"), startIndex);
+            int endIndex = req.indexOf(("&"), startIndex);
             if (endIndex >= 0)
             {
                 lastTimeValueStr = req.substring(startIndex, endIndex);                
@@ -378,9 +410,13 @@ void route_client(WiFiClient& client, Print& print)
         }
     }
     
-    print.println();
-    delay(1);
+    //print.println();
+    delay(10);
     client.stop();
+
+    //unsigned long t1 = millis();
+    //print.print("Route time: ");
+    //print.println(String((t1 - t0) / 1000.0));
 }
 
 /*
@@ -425,7 +461,7 @@ Heartbeat lastHeartbeat = { 0, 0 };
 void requestHeartbeat(Print& print)
 {
     unsigned long m = millis();
-    if ((m - lastHeartbeatRequest) > 10000) // every 10 second
+    if ((m - lastHeartbeatRequest) > 15000) // every 15 second
     {
         lastHeartbeatRequest = m;
         Wire.requestFrom(ARD_I2C_ADDRESS, heartbeatSize);
@@ -440,8 +476,8 @@ void requestHeartbeat(Print& print)
             // only add if last heartbeat time is different
             if (heartbeat.time != lastHeartbeat.time)
             {
-                print.print("Heartbeat ");
-                printlnHeartbeat(heartbeat, print);
+                //print.print("Heartbeat ");
+                //printlnHeartbeat(heartbeat, print);
 
                 lastHeartbeat = heartbeat;
                 addHeartbeat(heartbeat);
@@ -471,7 +507,7 @@ void loop()
     //DEBUG_SERIAL.print(F("Waiting for data"));
 	while (!client.available())
 	{
-		delay(10);
+		//delay(10);
         //DEBUG_SERIAL.print(F("."));
 	}
 	//DEBUG_SERIAL.println(F(" ok."));
@@ -483,5 +519,5 @@ void loop()
 
 	// The client will actually be disconnected 
 	// when the function returns and 'client' object is detroyed
-    delay(1);
+    //delay(10);
 }
